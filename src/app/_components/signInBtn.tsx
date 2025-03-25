@@ -1,14 +1,10 @@
-import { signIn } from "~/auth"
- 
+'use client'
+import { signIn } from "next-auth/react";
+
 export default function SignInBtn() {
-  return (
-    <form
-      action={async () => {
-        "use server"
-        await signIn("google", { redirectTo: "/dashboard" })
-      }}
-    >
-      <button type="submit" className='bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600'>Sign in with Google</button>
-    </form>
-  )
+    return (
+        <button onClick={() => signIn("google", { callbackUrl: "/dashboard" })} className='bg-blue-500 mt-3 text-white py-1 px-2 rounded-md hover:bg-blue-600'>
+            Sign in with Google
+        </button>
+    );
 }
