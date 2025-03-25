@@ -1,6 +1,5 @@
-import { signIn } from 'next-auth/react';
 import { NextResponse } from 'next/server';
-import { signOut } from '~/auth';
+import { signIn } from '~/auth';
 
 export async function POST() {
   await signIn();

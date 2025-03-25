@@ -9,7 +9,7 @@ export default function SignOutBtn() {
     await fetch('/api/auth/signout', {
       method: 'POST',
     });
-    router.push('/'); // Redirect to home or login page after sign out
+    router.push('/');
   };
 
   return (
