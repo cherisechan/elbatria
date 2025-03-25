@@ -14,6 +14,6 @@ export default function SignOutBtn() {
 
   return (
     
-    <button onClick={handleSignOut} className='bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600'>Sign Out</button>
+    <button onClick={handleSignOut} className='bg-blue-500 w-[100%] mt-3 text-white py-1 px-2 rounded-md hover:bg-blue-600'>Sign Out</button>
   );
 }
