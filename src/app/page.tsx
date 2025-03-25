@@ -7,7 +7,6 @@ export default async function Landing() {
 
     const session = await auth();
     if (session) {
-        console.log(session)
         redirect('/dashboard')
     }
     return (
