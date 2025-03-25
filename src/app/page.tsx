@@ -1,23 +1,20 @@
-import { api, HydrateClient } from "~/trpc/server";
-import { auth, signIn, signOut } from "~/auth"
-import Link from 'next/link';
-import SignInBtn from "./_components/signInBtn";
+import { auth } from "~/auth";
+import Link from "next/link";
 import Image from "next/image";
-import logo from '~/../public/logo.png'
-
+import logo from "~/../public/logo.png";
+import SignInBtn from "./_components/signInBtn";
+import { redirect } from "next/navigation";
 export default async function Landing() {
-    const session = await auth();
-    const user = session?.user;
 
+    const session = await auth();
+    if (session) redirect('/dashboard')
     return (
-        <HydrateClient>
         <main className="min-h-screen bg-gradient-to-b from-[#c2c6ce] via-[#f3d8d3] to-[#c2c6ce] flex flex-col items-center justify-center text-white">
             <header className="absolute top-0 left-0 p-4 text-3xl text-black flex items-center gap-2">
-                <Image src={logo} alt="Eltaria Logo" width={40} height={40}/>
+                <Image src={logo} alt="Eltaria Logo" width={40} height={40} />
                 Eltaria
             </header>
-            <SignInBtn/>
+            <SignInBtn />
         </main>
-        </HydrateClient>
     );
 }
