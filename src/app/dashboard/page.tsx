@@ -31,18 +31,18 @@ export default function Dashboard() {
       if (res.redirected) {
         router.push(res.url);
       } else {
-        const sessionData: { session: SessionData | null } = await res.json();
+        const sessionData = (await res.json()) as { session: SessionData | null };
         setSession(sessionData.session);
-        setLoading(false);
       }
     } catch (error) {
       console.error("Error checking session:", error);
+    } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    checkSession();
+    void checkSession(); // Ensures no floating promise
   }, []);
 
   if (loading) {
