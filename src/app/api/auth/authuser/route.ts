@@ -57,6 +57,5 @@ export async function POST(request: Request) {
       console.log(`New user created: ${newUser.id}`);
     }
   }
-
   return NextResponse.json({ session: session });
 }

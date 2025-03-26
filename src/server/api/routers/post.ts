@@ -2,20 +2,38 @@ import { z } from "zod";
 
 import {
   createTRPCRouter,
-  protectedProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
+import { db } from "~/server/db";
+import { bases, tables } from "~/server/db/schema";
 
 export const postRouter = createTRPCRouter({
-  hello: publicProcedure
-    .input(z.object({ text: z.string() }))
-    .query(({ input }) => {
-      return {
-        greeting: `Hello ${input.text}`,
-      };
-    }),
+    createBaseAndTable: publicProcedure
+    .input(
+      z.object({
+        user_id: z.number(),
+        base_name: z.string().min(1),
+        table_name: z.string().min(1),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { user_id, base_name, table_name } = input;
 
-  getSecretMessage: protectedProcedure.query(() => {
-    return "you can now see this secret message!";
-  }),
+      try {
+        const [base_id] = await db.insert(bases).values({
+            user_id: user_id,
+            name: base_name,
+        }).returning({id: bases.id})
+
+        if (base_id?.id) {
+            await db.insert(tables).values({
+                base_id: base_id.id,
+                name: table_name,
+            })
+        }
+      } catch (error) {
+        console.error("Error creating base and table:", error);
+        throw new Error("Failed to create base and table");
+      }
+    }),
 });
