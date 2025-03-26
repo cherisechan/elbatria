@@ -38,7 +38,7 @@ export async function POST(request: Request) {
   console.log("------from auth-----");
   console.log(session);
 
-  if (!session || !session.user) {
+  if (!session?.user) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
