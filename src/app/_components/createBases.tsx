@@ -51,6 +51,7 @@ export default function CreateBases() {
     } catch (error) {
       console.error("Failed to create base and table:", error);
     }
+    setModal(false)
   };
 
   return (
