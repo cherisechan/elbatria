@@ -21,7 +21,6 @@ import { users } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 import { auth } from "~/auth";
 
-
 interface SessionData {
   user: {
     name: string;
@@ -55,6 +54,7 @@ export async function POST(request: Request) {
     const [newUser] = await db.insert(users).values({ email: email }).returning({ id: users.id });
     if (newUser) {
       console.log(`New user created: ${newUser.id}`);
+
     }
   }
   return NextResponse.json({ session: session });

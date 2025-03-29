@@ -110,31 +110,31 @@
 
 
 
-import { pgTable, serial, varchar, boolean, timestamp, integer, text, jsonb } from "drizzle-orm/pg-core"
+import { pgTable, serial, varchar, boolean, timestamp, integer, uuid, jsonb } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
 
 export const users = pgTable("users", {
-    id: serial("id").primaryKey(),
+    id: uuid("id").primaryKey().default("uuid_generate_v4()"),
     email: varchar("email").unique().notNull()
 })
 
 export const bases = pgTable('bases', {
-    id: serial('id').primaryKey(),
-    user_id: integer('user_id').references(() => users.id),
+    id: uuid("id").primaryKey().default("uuid_generate_v4()"),
+    user_id: uuid('user_id').references(() => users.id),
     name: varchar('name').notNull(),
     created_at: timestamp('created_at').defaultNow(),
 });
 
 export const tables = pgTable('tables', {
-    id: serial('id').primaryKey(),
-    base_id: integer('base_id').references(() => bases.id),
+    id: uuid("id").primaryKey().default("uuid_generate_v4()"),
+    base_id: uuid('base_id').references(() => bases.id),
     name: varchar('name').notNull(),
     created_at: timestamp('created_at').defaultNow(),
 });
 
 export const columns = pgTable('columns', {
     id: serial('id').primaryKey(),
-    table_id: integer('table_id').references(() => tables.id),
+    table_id: uuid('table_id').references(() => tables.id),
     name: varchar('name').notNull(),
     data_type: varchar('data_type').notNull(),
     created_at: timestamp('created_at').defaultNow(),
@@ -142,7 +142,7 @@ export const columns = pgTable('columns', {
 
 export const rows = pgTable('rows', {
     id: serial('id').primaryKey(),
-    table_id: integer('table_id').references(() => tables.id),
+    table_id: uuid('table_id').references(() => tables.id),
     data: jsonb('data').notNull(),
     row_index: integer('row_index').notNull(),
     created_at: timestamp('created_at').defaultNow(),
@@ -150,13 +150,13 @@ export const rows = pgTable('rows', {
 
 export const views = pgTable('views', {
     id: serial('id').primaryKey(),
-    table_id: integer('table_id').notNull().references(() => tables.id),
+    table_id: uuid('table_id').notNull().references(() => tables.id),
     name: varchar('name').notNull(),
 });
 
 export const filter = pgTable('filter', {
     id: serial('id').primaryKey(),
-    view_id: integer('view_id').notNull().references(() => views.id),
+    view_id: serial('view_id').notNull().references(() => views.id),
     number_greater: boolean('number_greater'),
     number_target: integer('number_target'),
     text_filter: integer('text_filter'),

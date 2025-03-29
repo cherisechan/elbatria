@@ -1,40 +1,17 @@
 import { useEffect, useState } from "react";
 import { api } from "~/trpc/react";
 
-type ApiResponse = { uid: string | null };
-
-export default function CreateBases() {
+interface CardProp {
+  id: string,
+}
+export default function CreateBases({id}:CardProp) {
   const [modal, setModal] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
   const [baseName, setBaseName] = useState("Untitled");
-
-  useEffect(() => {
-    const getId = async () => {
-      try {
-        const response = await fetch("/api/auth/userid", {
-          method: "POST",
-        });
-
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-
-        const data = (await response.json()) as ApiResponse;
-        
-        if (typeof data.uid === 'string' ) {
-            setUserId(data.uid);
-        }
-      } catch (error) {
-        console.error("Error fetching user ID:", error);
-      }
-    };
-
-    void getId();
-  }, []);
 
   const createBaseAndTable = api.post.createBaseAndTable.useMutation();
   const createNewBaseAndTable = async () => {
-    if (!userId) {
+
+    if (id === "-1") {
       return;
     }
 
@@ -44,7 +21,7 @@ export default function CreateBases() {
 
     try {
       await createBaseAndTable.mutateAsync({
-        user_id: parseInt(userId, 10),
+        user_id: id,
         base_name: baseName,
         table_name: "Table 1",
       });

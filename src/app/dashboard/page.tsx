@@ -7,7 +7,8 @@ import Profile from "../_components/profile";
 import CreateBases from "../_components/createBases";
 import BaseCard from "../_components/baseCard";
 import { getURL } from "next/dist/shared/lib/utils";
-
+import { api } from "~/trpc/react";
+import Cookies from 'js-cookie';
 interface SessionData {
     user: {
         name: string;
@@ -50,6 +51,11 @@ export default function Dashboard() {
         void checkSession();
     }, []);
 
+    const { data: bases, isLoading: isBasesLoading, isError: isBasesError } = api.base.getBases.useQuery(
+        { user_id: uid },
+        { enabled: uid !== "-1" } // Only trigger the query once uid is valid
+    );
+
     useEffect(() => {
         const fetchUid = async () => {
             const getuid = await fetch("/api/auth/userid", {
@@ -60,12 +66,10 @@ export default function Dashboard() {
                 },
                 body: JSON.stringify({ session }),
             });
-            console.log(getuid)
-            const getuidArr = await getuid.json();
-            console.log(getuidArr)
-            if (Array.isArray(getuidArr)) {
-                setUid(getuidArr[0].id);
-                console.log(uid)
+            const getuidObj = await getuid.json();
+            if (getuidObj) {
+                setUid(getuidObj.uid);
+                Cookies.set('userid', getuidObj.uid, { expires: 30 });
             }
         }
         if (session) { 
@@ -75,7 +79,7 @@ export default function Dashboard() {
 
     // fetch the bases cards
     useEffect(() => {
-        
+        console.log(uid)
     },[uid])
 
     if (loading) {
@@ -101,7 +105,11 @@ export default function Dashboard() {
             </header>
             <div className="page-height w-full mt-[60px] bg-[#f8fafc] p-5">
                 <CreateBases id={uid}/>
-                <BaseCard name="Untitled"/>
+                {bases?.map((base) => (
+                    <div key={base.id} className="border p-4 rounded shadow-lg">
+                        <h3 className="text-xl font-bold text-black">{base.name}</h3>
+                    </div>
+                ))}
             </div>
         </main>
     );

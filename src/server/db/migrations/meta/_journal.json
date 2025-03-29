@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1742908423669,
-      "tag": "0000_smooth_dust",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1743131508260,
-      "tag": "0001_spicy_songbird",
+      "when": 1743266863618,
+      "tag": "0000_free_snowbird",
       "breakpoints": true
     }
   ]

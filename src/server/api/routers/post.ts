@@ -11,7 +11,7 @@ export const postRouter = createTRPCRouter({
     createBaseAndTable: publicProcedure
     .input(
       z.object({
-        user_id: z.number(),
+        user_id: z.string(),
         base_name: z.string().min(1),
         table_name: z.string().min(1),
       })
