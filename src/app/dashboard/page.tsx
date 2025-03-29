@@ -5,8 +5,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Profile from "../_components/profile";
 import CreateBases from "../_components/createBases";
-import BaseCard from "../_components/baseCard";
-import { getURL } from "next/dist/shared/lib/utils";
 import { api } from "~/trpc/react";
 import Cookies from 'js-cookie';
 interface SessionData {
