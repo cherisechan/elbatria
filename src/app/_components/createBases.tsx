@@ -8,7 +8,7 @@ export default function CreateBases({id}:CardProp) {
   const [modal, setModal] = useState(false);
   const [baseName, setBaseName] = useState("Untitled");
 
-  const createBaseAndTable = api.post.createBaseAndTable.useMutation();
+  const createBaseAndTable = api.create.createBaseAndTable.useMutation();
   const createNewBaseAndTable = async () => {
 
     if (id === "-1") {

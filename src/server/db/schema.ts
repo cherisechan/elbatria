@@ -110,8 +110,9 @@
 
 
 
-import { pgTable, serial, varchar, boolean, timestamp, integer, uuid, jsonb } from "drizzle-orm/pg-core"
+import { pgTable, serial, varchar, boolean, timestamp, integer, uuid, jsonb, text, numeric } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
+
 
 export const users = pgTable("users", {
     id: uuid("id").primaryKey().default("uuid_generate_v4()"),
@@ -140,13 +141,15 @@ export const columns = pgTable('columns', {
     created_at: timestamp('created_at').defaultNow(),
 });
 
-export const rows = pgTable('rows', {
+export const cells = pgTable('cells', {
     id: serial('id').primaryKey(),
-    table_id: uuid('table_id').references(() => tables.id),
-    data: jsonb('data').notNull(),
     row_index: integer('row_index').notNull(),
+    col_id: integer('col_id').references(() => columns.id),
+    text: text('text'),
+    num: numeric('num'),
     created_at: timestamp('created_at').defaultNow(),
 });
+
 
 export const views = pgTable('views', {
     id: serial('id').primaryKey(),
@@ -184,9 +187,9 @@ export const columnRelations = relations(columns, ({ one }) => ({
     table: one(tables),
 }));
 
-export const rowRelations = relations(rows, ({ one }) => ({
-    table: one(tables),
-}))
+export const cellRelations = relations(cells, ({ one }) => ({
+    column: one(columns),
+}));
 
 export const viewRelations = relations(views, ({ many, one }) => ({
     table: one(tables), 
