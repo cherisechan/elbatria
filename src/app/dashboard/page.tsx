@@ -16,6 +16,10 @@ interface SessionData {
     expires: string;
 }
 
+type GetUidResponse = {
+    uid: string;
+  };
+
 export default function Dashboard() {
     const [session, setSession] = useState<SessionData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
@@ -64,11 +68,11 @@ export default function Dashboard() {
                 },
                 body: JSON.stringify({ session }),
             });
-            const getuidObj = await getuid.json();
-            if (getuidObj) {
+            const getuidObj = (await getuid.json()) as GetUidResponse;
+            if (getuidObj?.uid) {
                 setUid(getuidObj.uid);
-                Cookies.set('userid', getuidObj.uid, { expires: 30 });
-            }
+                Cookies.set("userid", getuidObj.uid, { expires: 30 });
+              }
         }
         if (session) { 
             void fetchUid();

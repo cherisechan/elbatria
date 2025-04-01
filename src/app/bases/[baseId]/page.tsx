@@ -2,9 +2,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import BasePage from "./BasePage";
 
-export default async function Page(props: any) {
-
-  const baseId = (await props.params).baseId;
+export default async function Page({params,}: {params: { baseId: string };}) {
+  const baseId = params.baseId;
 
   const userId = (await cookies()).get("userid")?.value;
 

@@ -16,12 +16,10 @@ interface SessionData {
 
 
 export async function POST(request: Request) {
-  const {session} = await request.json();
+  const body = (await request.json()) as SessionData;
+  const { session } = body;
   try {
     if (!session?.user) {
-      console.log('booo')
-      console.log(session)
-      console.log('hoo')
       return NextResponse.redirect(new URL("/", request.url));
     }
 

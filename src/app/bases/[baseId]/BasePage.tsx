@@ -45,7 +45,7 @@ export default function BasePage({ baseId, userId }: Props) {
     if (baseError || tablesError)
         return (
         <div>
-            Error: {baseError?.message || tablesError?.message}
+            Error loading page
         </div>
         );
     if (!base) return <div>Base not found.</div>;

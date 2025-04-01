@@ -41,9 +41,7 @@ export const baseRouter = createTRPCRouter({
         .select()
         .from(bases)
         .where(eq(bases.id, base_id));
-
-      // Assuming `id` is unique, return the first (and only) result
-      return base[0] || null;
+      return  base[0] ?? null;
     } catch (error) {
       console.error("Error fetching base by ID:", error);
       throw new Error("Failed to fetch base");
