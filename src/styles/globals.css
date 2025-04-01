@@ -1,4 +1,12 @@
 @import "tailwindcss";
+@plugin "daisyui" {
+  themes: light;
+  root: ":root";
+  include: ;
+  exclude: ;
+  prefix: ;
+  logs: true;
+}
 
 @theme {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,

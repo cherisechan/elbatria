@@ -144,7 +144,7 @@ export const columns = pgTable('columns', {
 export const cells = pgTable('cells', {
     id: serial('id').primaryKey(),
     row_index: integer('row_index').notNull(),
-    col_id: integer('col_id').references(() => columns.id),
+    col_id: integer('col_id').notNull().references(() => columns.id),
     text: text('text'),
     num: numeric('num'),
     created_at: timestamp('created_at').defaultNow(),

@@ -53,7 +53,7 @@ export default function Dashboard() {
         void checkSession();
     }, []);
 
-    const { data: bases, isLoading: isBasesLoading, isError: isBasesError } = api.base.getBases.useQuery(
+    const { data: bases, isLoading: isBasesLoading, isError: isBasesError, refetch: refetchBases, } = api.base.getBases.useQuery(
         { user_id: uid },
         { enabled: uid !== "-1" } // Only trigger the query once uid is valid
     );
@@ -106,10 +106,10 @@ export default function Dashboard() {
                 }
             </header>
             <div className="page-height w-full mt-[60px] bg-[#f8fafc] p-5">
-                <CreateBases id={uid}/>
+                <CreateBases id={uid} onCreate={refetchBases}/>
                 {bases?.map((base) => (
-                    <div key={base.id} className="border p-4 rounded shadow-lg">
-                        <h3 className="text-xl font-bold text-black">{base.name}</h3>
+                    <div key={base.id} className="bg-white border border-gray-500 m-2 p-4 rounded w-[50%]">
+                        <h3 className="text-xl font-bold text-black cursor-pointer" onClick={() => router.push(`/bases/${base.id}`)}>{base.name}</h3>
                     </div>
                 ))}
             </div>

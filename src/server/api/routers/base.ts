@@ -60,18 +60,26 @@ export const baseRouter = createTRPCRouter({
   .input(z.object({ tableId: z.string() }))
   .query(async ({ input }) => {
     const { tableId } = input;
-    return await db.select().from(columns).where(eq(columns.table_id, tableId)).orderBy(bases.created_at);
+    if (tableId === "") return []
+    return await db.select().from(columns).where(eq(columns.table_id, tableId)).orderBy(columns.created_at)
   }),
 
   getCellsByColumns: publicProcedure
-  .input(z.object({ columnIds: z.array(z.string()) })) // Accept an array of column IDs
+  .input(z.object({ columnIds: z.array(z.string()) }))
   .query(async ({ input }) => {
     const { columnIds } = input;
+
+    if (!columnIds.length) return [];
+
+    const numericIds = columnIds
+      .map((id) => parseInt(id))
+      .filter((id) => !isNaN(id));
+
     return await db
       .select()
       .from(cells)
-      .where(inArray(cells.col_id, columnIds.map(id => parseInt(id)))) 
-      .orderBy(cells.row_index); 
+      .where(inArray(cells.col_id, numericIds))
+      .orderBy(cells.row_index);
   }),
     
 });

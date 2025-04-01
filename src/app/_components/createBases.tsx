@@ -1,16 +1,21 @@
+"use client";
 import { useEffect, useState } from "react";
 import { api } from "~/trpc/react";
+import { useRouter } from "next/navigation";
 
 interface CardProp {
   id: string,
+  onCreate: () => void
 }
-export default function CreateBases({id}:CardProp) {
+export default function CreateBases({id, onCreate}:CardProp) {
   const [modal, setModal] = useState(false);
   const [baseName, setBaseName] = useState("Untitled");
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   const createBaseAndTable = api.create.createBaseAndTable.useMutation();
   const createNewBaseAndTable = async () => {
-
+    setLoading(true);
     if (id === "-1") {
       return;
     }
@@ -20,17 +25,25 @@ export default function CreateBases({id}:CardProp) {
     }
 
     try {
-      await createBaseAndTable.mutateAsync({
+      const ret = await createBaseAndTable.mutateAsync({
         user_id: id,
         base_name: baseName,
         table_name: "Table 1",
       });
+      const baseId = ret?.base_id;
+
+      if (baseId) {
+        router.push(`/bases/${baseId}`);
+        setModal(false)
+        setLoading(false)
+      }
+      onCreate()
     } catch (error) {
       console.error("Failed to create base and table:", error);
     }
-    setModal(false)
   };
 
+  if (loading) return <>Loading...</>
   return (
     <div className="relative">
       <button

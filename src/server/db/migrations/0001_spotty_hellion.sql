@@ -1,0 +1,1 @@
+ALTER TABLE "cells" ALTER COLUMN "col_id" SET NOT NULL;

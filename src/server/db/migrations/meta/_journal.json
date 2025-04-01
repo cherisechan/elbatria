@@ -8,6 +8,13 @@
       "when": 1743339272322,
       "tag": "0000_puzzling_scarlet_spider",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1743506566745,
+      "tag": "0001_spotty_hellion",
+      "breakpoints": true
     }
   ]
 }

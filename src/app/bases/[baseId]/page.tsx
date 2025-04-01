@@ -2,9 +2,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import BasePage from "./BasePage";
 
-export default async function Page({params,}: {params: { baseId: string };}) {
-  const baseId = params.baseId;
-
+export default async function Base({ params }: {params: Promise<{ baseId: string }> }) {
+  const { baseId } = await params;
   const userId = (await cookies()).get("userid")?.value;
 
   if (!userId) {

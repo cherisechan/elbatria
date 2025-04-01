@@ -74,10 +74,72 @@ export const createRouter = createTRPCRouter({
             },
           ]);
         }
-        return { success: 400, base_id: base_id.id};
+        return { success: 200, base_id: base_id.id};
       } catch (error) {
         console.error("Error creating base and table:", error);
         throw new Error("Failed to create base and table");
       }
+    }),
+
+    createTable: publicProcedure
+    .input(
+        z.object({
+        base_id: z.string(),
+        table_name: z.string().min(1),
+        })
+    )
+    .mutation(async ({ input }) => {
+        const { base_id, table_name } = input;
+
+        try {
+        // create table
+        const [table] = await db.insert(tables).values({
+            base_id,
+            name: table_name,
+        }).returning({ id: tables.id });
+
+        if (!table?.id) {
+            throw new Error("Failed to create table");
+        }
+
+        // create default columns
+        const [text_column_id, num_column_id] = await db
+            .insert(columns)
+            .values([
+            { table_id: table.id, name: "Text Column", data_type: "text" },
+            { table_id: table.id, name: "Number Column", data_type: "number" },
+            ])
+            .returning({ id: columns.id });
+
+        if (!text_column_id?.id || !num_column_id?.id) {
+            throw new Error("Failed to create columns");
+        }
+
+        // create rows with Faker.js data (optional)
+        const rowsData = Array.from({ length: 5 }, (_, index) => ({
+            table_id: table.id,
+            row_index: index + 1,
+        }));
+
+        for (const rowData of rowsData) {
+            await db.insert(cells).values([
+            {
+                row_index: rowData.row_index,
+                col_id: text_column_id.id,
+                text: faker.lorem.words(3),
+            },
+            {
+                row_index: rowData.row_index,
+                col_id: num_column_id.id,
+                num: faker.number.float({ min: 1, max: 100 }).toString(),
+            },
+            ]);
+        }
+
+        return { success: 200, table_id: table.id };
+        } catch (error) {
+        console.error("Error creating table:", error);
+        throw new Error("Failed to create table");
+        }
     }),
 });
