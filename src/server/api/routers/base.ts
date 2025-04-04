@@ -5,7 +5,7 @@ import {
 } from "~/server/api/trpc";
 import { db } from "~/server/db";
 import { bases, tables, columns, cells } from "~/server/db/schema";
-import { desc, eq, inArray } from "drizzle-orm";
+import { desc, eq, inArray, and } from "drizzle-orm";
 
 export const baseRouter = createTRPCRouter({
   getBases: publicProcedure
@@ -61,7 +61,7 @@ export const baseRouter = createTRPCRouter({
   .query(async ({ input }) => {
     const { tableId } = input;
     if (tableId === "") return []
-    return await db.select().from(columns).where(eq(columns.table_id, tableId)).orderBy(columns.created_at)
+    return await db.select().from(columns).where(eq(columns.table_id, tableId)).orderBy(columns.id)
   }),
 
   getCellsByColumns: publicProcedure
@@ -80,6 +80,59 @@ export const baseRouter = createTRPCRouter({
       .from(cells)
       .where(inArray(cells.col_id, numericIds))
       .orderBy(cells.row_index);
+  }), 
+  updateCell: publicProcedure
+  .input(z.object({
+    tableId: z.string(),
+    colId: z.number(),
+    rowIndex: z.number(),
+    value: z.union([z.string(), z.number(), z.null()]),
+  }))
+  .mutation(async ({ input }) => {
+    const { tableId, colId, rowIndex, value } = input;
+
+    // Get the column ID by name and table
+    const column = await db.select().from(columns).where(
+      and(
+        eq(columns.table_id, tableId),
+        eq(columns.id, colId)
+      )
+    );
+
+    const col = column[0];
+    if (!col) throw new Error("Column not found");
+
+    // Check if cell exists
+    const existing = await db.select().from(cells).where(
+      and(
+        eq(cells.col_id, col.id),
+        eq(cells.row_index, rowIndex)
+      )
+    );
+
+    if (existing.length > 0) {
+      await db.update(cells)
+        .set({
+          text: typeof value === "string" ? value : null,
+          num: typeof value === "number" ? value.toString() : null,
+        })
+        .where(
+          and(
+            eq(cells.col_id, col.id),
+            eq(cells.row_index, rowIndex)
+          )
+        );
+    } else {
+      await db.insert(cells).values({
+        col_id: col.id,
+        row_index: rowIndex,
+        text: typeof value === "string" ? value : null,
+        num: typeof value === "number" ? value.toString() : null,
+      });
+    }
+
+    return { success: true };
   }),
+
     
 });

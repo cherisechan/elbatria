@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useReactTable,
-  getCoreRowModel,
-  flexRender,
-  type ColumnDef,
-  getSortedRowModel,
-} from "@tanstack/react-table";
+import { useReactTable, getCoreRowModel, flexRender, type ColumnDef, getSortedRowModel } from "@tanstack/react-table";
 import { useMemo } from "react";
 import { api } from "~/trpc/react";
 
@@ -49,12 +43,69 @@ export default function DisplayTable({ tableId }: Prop) {
     return Object.values(rowMap);
   }, [columns, cells]);
 
+  const utils = api.useUtils();
+
+  const updateCell = api.base.updateCell.useMutation({
+    onMutate: async (newCell) => {
+      const previousData = utils.base.getCellsByColumns.getData();
+  
+      utils.base.getCellsByColumns.setData({ columnIds }, (old) => {
+        if (!old) return old;
+        return old.map(cell =>
+          cell.col_id === newCell.colId && cell.row_index === newCell.rowIndex
+            ? {
+                ...cell,
+                text: typeof newCell.value === "string" ? newCell.value : null,
+                num: typeof newCell.value === "number" ? String(newCell.value) : null, // 🔧 FIX HERE
+              }
+            : cell
+        );
+      });
+  
+      return { previousData };
+    },
+    onError: (err, _newCell, context) => {
+      // Rollback on error
+      utils.base.getCellsByColumns.setData({ columnIds }, context?.previousData);
+    },
+    onSettled: () => {
+      utils.base.getCellsByColumns.invalidate();
+    },
+  });
+  
+
   const tableColumns = useMemo<ColumnDef<TableRow>[]>(() => {
     return columns?.map((col) => ({
       accessorKey: col.name,
       header: col.name,
+      cell: ({ row, column }) => {
+        const value = row.getValue(column.id) as string | number | null;
+  
+        const rowIndexFromDB = row.original.row_index; // ✅ actual row_index from DB
+        if (!rowIndexFromDB) {
+          return
+        }
+        return (
+          <input
+            defaultValue={value ?? ""}
+            className="w-full h-full p-1 bg-white"
+            onBlur={(e) => {
+              const newValue = e.target.value;
+              if (newValue !== value) {
+                updateCell.mutate({
+                  tableId,
+                  colId: col.id,
+                  rowIndex: typeof rowIndexFromDB === "string" ? parseInt(rowIndexFromDB) : rowIndexFromDB,
+                  value: newValue,
+                });
+              }
+            }}
+          />
+        );
+      },
     })) ?? [];
-  }, [columns]);
+  }, [columns, updateCell, tableId]);
+  
 
   const table = useReactTable({
     data: rows,
@@ -81,10 +132,12 @@ export default function DisplayTable({ tableId }: Prop) {
           <tr key={row.id}>
             {row.getVisibleCells().map((cell, cellIndex) => (
                 <td key={cell.id} className="border-1 border-gray-300 ">
-                    {cellIndex === 0 && (
-                        <span className="text-gray-400 inline-block w-10 text-center">{row.index + 1}</span>
-                    )}
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    <div className="flex item-center gap-2">
+                        {cellIndex === 0 && (
+                            <span className="text-gray-400 w-10 text-center">{row.index + 1}</span>
+                        )}
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </div>
                 </td>
             ))}
           </tr>

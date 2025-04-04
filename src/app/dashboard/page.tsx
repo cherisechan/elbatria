@@ -107,6 +107,9 @@ export default function Dashboard() {
             </header>
             <div className="page-height w-full mt-[60px] bg-[#f8fafc] p-5">
                 <CreateBases id={uid} onCreate={refetchBases}/>
+                <div>
+                    
+                </div>
                 {bases?.map((base) => (
                     <div key={base.id} className="bg-white border border-gray-500 m-2 p-4 rounded w-[50%]">
                         <h3 className="text-xl font-bold text-black cursor-pointer" onClick={() => router.push(`/bases/${base.id}`)}>{base.name}</h3>
