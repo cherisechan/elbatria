@@ -69,7 +69,7 @@ export default function DisplayTable({ tableId }: Prop) {
       utils.base.getCellsByColumns.setData({ columnIds }, context?.previousData);
     },
     onSettled: () => {
-      utils.base.getCellsByColumns.invalidate();
+      void utils.base.getCellsByColumns.invalidate();
     },
   });
   
@@ -79,15 +79,16 @@ export default function DisplayTable({ tableId }: Prop) {
       accessorKey: col.name,
       header: col.name,
       cell: ({ row, column }) => {
-        const value = row.getValue(column.id) as string | number | null;
-  
-        const rowIndexFromDB = row.original.row_index; // ✅ actual row_index from DB
+        const getValue = row.getValue(column.id);
+        const value: string | number | undefined =
+        typeof getValue === "string" || typeof getValue === "number" ? getValue : undefined;
+        const rowIndexFromDB = row.original.row_index;
         if (!rowIndexFromDB) {
           return
         }
         return (
           <input
-            defaultValue={value ?? ""}
+            defaultValue={value}
             className="w-full h-full p-1 bg-white"
             onBlur={(e) => {
               const newValue = e.target.value;
