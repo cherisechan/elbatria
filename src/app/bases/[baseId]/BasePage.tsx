@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { api } from "~/trpc/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import logo from "~/../public/logo.png";
 import DisplayTable from "~/app/_components/tableDisplay";
 type Props = {
@@ -16,6 +16,7 @@ export default function BasePage({ baseId, userId }: Props) {
     const [onTableId, setOnTableId] = useState("")
     const [loadingTables, setLoadingTables] = useState(false);
     const createTable = api.create.createTable.useMutation();
+
     //fetch base
     const {
         data: base,

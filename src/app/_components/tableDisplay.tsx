@@ -6,12 +6,17 @@ import {
   getSortedRowModel,
   flexRender,
   type ColumnDef,
+  getFilteredRowModel,
+  type FilterFn,
 } from "@tanstack/react-table";
+import { rankItem } from '@tanstack/match-sorter-utils'
 import { useMemo, useState } from "react";
 import { api } from "~/trpc/react";
 import { TiSortAlphabetically } from "react-icons/ti";
 import { MdNumbers } from "react-icons/md";
+import FilterBox from "./filters"
 import AddColumnButton from "./addColumnBtn";
+import { IoIosSearch } from "react-icons/io";
 interface Prop {
   tableId: string;
 }
@@ -26,7 +31,7 @@ type MyColumnMeta = {
 export default function DisplayTable({ tableId }: Prop) {
     const { data: columns } = api.base.getColumnsByTableId.useQuery({ tableId });
     const [columnSizing, setColumnSizing] = useState({});
-
+    const [columnFilters, setColumnFilters] = useState<string[]>([]);
     const columnIds = useMemo(
         () => columns?.map((col) => col.id.toString()) ?? [],
         [columns]
@@ -184,6 +189,11 @@ export default function DisplayTable({ tableId }: Prop) {
         );
     }, [columns, updateCell, tableId]);
 
+    const fuzzyFilter: FilterFn<TableRow> = (row, columnId, value, addMeta) => {
+        const itemRank = rankItem(row.getValue(columnId), value);
+        addMeta({itemRank})
+        return itemRank.passed
+    }
     const table = useReactTable({
         data: rows,
         columns: tableColumns,
@@ -192,13 +202,29 @@ export default function DisplayTable({ tableId }: Prop) {
         enableColumnResizing: true,
         columnResizeMode: "onChange",
         state: {
-        columnSizing,
+            columnSizing,
         },
+        getFilteredRowModel: getFilteredRowModel(),
+        filterFns: {
+            fuzzy: fuzzyFilter
+        },
+        globalFilterFn: fuzzyFilter,
         onColumnSizingChange: setColumnSizing,
     });
 
     return (
         <div className="overflow-visible h-full">
+             <div className="max-w-[12rem] relative my-2">
+                <span className="absolute inset-y-0 left-2 flex items-center text-gray-400">
+                    <IoIosSearch />
+                </span>
+                <input
+                    type="text"
+                    placeholder="Search"
+                    className="w-full pl-8 pr-2 py-1.5 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={e => table.setGlobalFilter(e.target.value)}
+                />
+            </div>
             <table className="table-fixed border-collapse">
                 <thead className="bg-gray-100 border">
                 {table.getHeaderGroups().map((headerGroup) => (
