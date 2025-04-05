@@ -57,20 +57,20 @@ export const createRouter = createTRPCRouter({
         // create rows with Faker.js data
         const rowsData = Array.from({ length: 5 }, (_, index) => ({
           table_id: table_id.id,
-          row_index: index + 1, // This will define the row position
+          row_index: index + 1,
         }));
         
         for (const rowData of rowsData) {
           await db.insert(cells).values([
             {
-              row_index: rowData.row_index, // Use row_index here directly
+              row_index: rowData.row_index,
               col_id: text_column_id.id,
               text: faker.lorem.words(3),
             },
             {
-              row_index: rowData.row_index, // Use row_index here as well
+              row_index: rowData.row_index,
               col_id: num_column_id.id,
-              num: faker.number.float({ min: 1, max: 100 }).toString(), // Convert to string as numeric field might expect it
+              num: faker.number.float({ min: 1, max: 100 }).toString(), 
             },
           ]);
         }
@@ -137,6 +137,36 @@ export const createRouter = createTRPCRouter({
         }
 
         return { success: 200, table_id: table.id };
+        } catch (error) {
+        console.error("Error creating table:", error);
+        throw new Error("Failed to create table");
+        }
+    }),
+
+    createColumn: publicProcedure
+    .input(
+        z.object({
+            table_id: z.string().min(1),
+            name: z.string(),
+            data_type: z.string(),
+        })
+    )
+    .mutation(async ({ input }) => {
+        const { table_id, name, data_type } = input;
+
+        try {
+        // create table
+        const [column] = await db.insert(columns).values({
+            table_id,
+            name,
+            data_type,
+        }).returning({ id: columns.id });
+
+        if (!column?.id) {
+            throw new Error("Failed to create column")
+        }
+
+        return { success: 200, column_id: column.id };
         } catch (error) {
         console.error("Error creating table:", error);
         throw new Error("Failed to create table");

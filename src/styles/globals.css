@@ -16,3 +16,7 @@
 .page-height {
   height: calc(100vh - 60px);
 }
+
+html {
+  height: 100vh;
+}

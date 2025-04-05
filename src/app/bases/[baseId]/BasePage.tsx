@@ -86,7 +86,8 @@ export default function BasePage({ baseId, userId }: Props) {
         void tableCreate();
     }
 
-    return (<>
+    return (
+    <div>
         <nav className="flex items-center flex-col bg-[#3a66a3]">
             <div className="font-semibold text-lg text-white flex w-full px-6 py-4 justify-start gap-2"> 
                 <Image src={logo} alt="Elbatria" className="w-5 h-5 self-center" onClick={() => router.push('/dashboard')} />
@@ -135,5 +136,6 @@ export default function BasePage({ baseId, userId }: Props) {
         <div className="p-3">
             <DisplayTable tableId={onTableId}/>
         </div>
-    </>);
+    </div>
+    );
 }
