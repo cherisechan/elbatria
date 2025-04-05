@@ -7,7 +7,7 @@ import {
 import { db } from "~/server/db";
 import { bases, tables, columns, cells } from "~/server/db/schema";
 import { faker } from '@faker-js/faker';
-
+import { sql, eq } from "drizzle-orm";
 export const createRouter = createTRPCRouter({
     createBaseAndTable: publicProcedure
     .input(
@@ -172,4 +172,44 @@ export const createRouter = createTRPCRouter({
         throw new Error("Failed to create table");
         }
     }),
+
+    addRow: publicProcedure
+    .input(z.object({
+        tableId: z.string(),
+    }))
+    .mutation(async ({ input }) => {
+        const { tableId } = input;
+
+        // 1. Fetch all columns for the given table
+        const cols = await db
+            .select({ id: columns.id, data_type: columns.data_type })
+            .from(columns)
+            .where(eq(columns.table_id, tableId));
+
+        if (cols.length === 0) {
+            throw new Error("No columns found for the given table");
+        }
+
+        // 2. Determine the next available row_index
+        const maxRow = await db
+            .select({ max: sql<number>`MAX(${cells.row_index})` })
+            .from(cells)
+            .innerJoin(columns, eq(columns.id, cells.col_id))
+            .where(eq(columns.table_id, tableId));
+
+        const nextRowIndex = (maxRow?.[0]?.max ?? 0) + 1;
+
+        // 3. Insert empty cells per column
+        const newCells = cols.map((col) => ({
+            row_index: nextRowIndex,
+            col_id: col.id,
+            text: col.data_type === "text" ? "" : null,
+            num: col.data_type === "number" ? null : null,
+        }));
+
+        await db.insert(cells).values(newCells);
+
+        return { success: true, row_index: nextRowIndex };
+    }),
+
 });

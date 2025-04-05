@@ -14,7 +14,7 @@ import { useMemo, useState } from "react";
 import { api } from "~/trpc/react";
 import { TiSortAlphabetically } from "react-icons/ti";
 import { MdNumbers } from "react-icons/md";
-import FilterBox from "./filters"
+import AddRowBtn from "./addRowBtn";
 import AddColumnButton from "./addColumnBtn";
 import { IoIosSearch } from "react-icons/io";
 interface Prop {
@@ -37,7 +37,7 @@ export default function DisplayTable({ tableId }: Prop) {
         [columns]
     );
 
-    const { data: cells } = api.base.getCellsByColumns.useQuery(
+    const { data: cells, refetch: refetchCells } = api.base.getCellsByColumns.useQuery(
         { columnIds },
         { enabled: columnIds.length > 0 }
     );
@@ -315,6 +315,13 @@ export default function DisplayTable({ tableId }: Prop) {
                     ))}
                     </tr>
                 ))}
+                <tr>
+                    <td className="text-gray-400 pl-2 text-lg border border-gray-300 w-10">
+                        <AddRowBtn tableId={tableId} refetch={refetchCells} />
+                    </td>
+                    <td colSpan={table.getAllLeafColumns().length - 1} className="border border-gray-300">
+                    </td>
+                </tr>
                 </tbody>
             </table>
         </div>
