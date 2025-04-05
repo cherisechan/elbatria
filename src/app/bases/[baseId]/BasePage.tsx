@@ -134,6 +134,9 @@ export default function BasePage({ baseId, userId }: Props) {
             </div>
 
         </nav>
+        <div className="w-full bg-">
+            
+        </div>
         <div className="p-3">
             <DisplayTable tableId={onTableId}/>
         </div>

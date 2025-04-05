@@ -5,7 +5,7 @@ import {
 } from "~/server/api/trpc";
 import { db } from "~/server/db";
 import { bases, tables, columns, cells } from "~/server/db/schema";
-import { desc, eq, inArray, and } from "drizzle-orm";
+import { desc, eq, inArray, and, or, ilike, sql } from "drizzle-orm";
 
 export const baseRouter = createTRPCRouter({
     getBases: publicProcedure
@@ -76,23 +76,39 @@ export const baseRouter = createTRPCRouter({
         }),
 
     getCellsByColumns: publicProcedure
-        .input(z.object({ columnIds: z.array(z.string()) }))
+        .input(z.object({
+            columnIds: z.array(z.string()),
+            filter: z.object({
+                search: z.string().optional(),
+            }).optional(),
+        }))
         .query(async ({ input }) => {
-            const { columnIds } = input;
-
+            const { columnIds, filter } = input;
+        
             if (!columnIds.length) return [];
-
+        
             const numericIds = columnIds
                 .map((id) => parseInt(id))
                 .filter((id) => !isNaN(id));
+        
+            const search = filter?.search?.trim();
+        
+            const numAsText = sql`CAST(${cells.num} AS TEXT)`;
 
-            return await db
-                .select()
-                .from(cells)
-                .where(inArray(cells.col_id, numericIds))
-                .orderBy(cells.row_index);
-        }),
-
+            return await db.select().from(cells).where(
+              and(
+                inArray(cells.col_id, numericIds),
+                search
+                  ? or(
+                      ilike(cells.text, `%${search}%`),
+                      ilike(numAsText, `%${search}%`)
+                    )
+                  : undefined
+              )
+            ).orderBy(cells.row_index);
+    }),
+        
+    
     updateCell: publicProcedure
         .input(z.object({
             tableId: z.string(),

@@ -31,14 +31,22 @@ type MyColumnMeta = {
 export default function DisplayTable({ tableId }: Prop) {
     const { data: columns } = api.base.getColumnsByTableId.useQuery({ tableId });
     const [columnSizing, setColumnSizing] = useState({});
-    const [columnFilters, setColumnFilters] = useState<string[]>([]);
+    const [searchValue, setSearchValue] = useState("");
+    const [searchColumnId, setSearchColumnId] = useState<number | null>(null);
     const columnIds = useMemo(
         () => columns?.map((col) => col.id.toString()) ?? [],
         [columns]
     );
 
     const { data: cells, refetch: refetchCells } = api.base.getCellsByColumns.useQuery(
-        { columnIds },
+        {
+            columnIds,
+            filter: searchValue
+              ? {
+                  search: searchValue,
+                }
+              : undefined,
+          },
         { enabled: columnIds.length > 0 }
     );
 
@@ -189,14 +197,6 @@ export default function DisplayTable({ tableId }: Prop) {
         );
     }, [columns, updateCell, tableId]);
 
-    const fuzzyFilter: FilterFn<TableRow> = (row, columnId, value, addMeta) => {
-        const item = String(row.getValue(columnId) ?? "");
-        const search = String(value ?? "");
-
-        const itemRank = rankItem(item, search);
-        addMeta?.({ itemRank });
-        return itemRank.passed;
-    }
     const table = useReactTable({
         data: rows,
         columns: tableColumns,
@@ -207,11 +207,6 @@ export default function DisplayTable({ tableId }: Prop) {
         state: {
             columnSizing,
         },
-        getFilteredRowModel: getFilteredRowModel(),
-        filterFns: {
-            fuzzy: fuzzyFilter
-        },
-        globalFilterFn: fuzzyFilter,
         onColumnSizingChange: setColumnSizing,
     });
 
@@ -225,7 +220,7 @@ export default function DisplayTable({ tableId }: Prop) {
                     type="text"
                     placeholder="Search"
                     className="w-full pl-8 pr-2 py-1.5 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    onChange={e => table.setGlobalFilter(e.target.value)}
+                    onChange={e => setSearchValue(e.target.value)}
                 />
             </div>
             <table className="table-fixed border-collapse">

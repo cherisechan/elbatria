@@ -199,3 +199,13 @@ export const viewRelations = relations(views, ({ many, one }) => ({
 export const filterRelations = relations(filter, ({ one }) => ({
     view: one(views),
 }));
+
+export const schema = {
+    bases,
+    tables,
+    columns,
+    cells,
+    views,
+    filter,
+    users,
+};
