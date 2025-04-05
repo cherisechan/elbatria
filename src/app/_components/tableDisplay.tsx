@@ -190,9 +190,12 @@ export default function DisplayTable({ tableId }: Prop) {
     }, [columns, updateCell, tableId]);
 
     const fuzzyFilter: FilterFn<TableRow> = (row, columnId, value, addMeta) => {
-        const itemRank = rankItem(row.getValue(columnId), value);
-        addMeta({itemRank})
-        return itemRank.passed
+        const item = String(row.getValue(columnId) ?? "");
+        const search = String(value ?? "");
+
+        const itemRank = rankItem(item, search);
+        addMeta?.({ itemRank });
+        return itemRank.passed;
     }
     const table = useReactTable({
         data: rows,
