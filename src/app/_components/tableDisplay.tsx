@@ -6,17 +6,15 @@ import {
   getSortedRowModel,
   flexRender,
   type ColumnDef,
-  getFilteredRowModel,
-  type FilterFn,
 } from "@tanstack/react-table";
-import { rankItem } from '@tanstack/match-sorter-utils'
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { api } from "~/trpc/react";
 import { TiSortAlphabetically } from "react-icons/ti";
 import { MdNumbers } from "react-icons/md";
 import AddRowBtn from "./addRowBtn";
 import AddColumnButton from "./addColumnBtn";
 import { IoIosSearch } from "react-icons/io";
+import BodyCell from "./bodyCell";
 interface Prop {
   tableId: string;
 }
@@ -32,7 +30,6 @@ export default function DisplayTable({ tableId }: Prop) {
     const { data: columns } = api.base.getColumnsByTableId.useQuery({ tableId });
     const [columnSizing, setColumnSizing] = useState({});
     const [searchValue, setSearchValue] = useState("");
-    const [searchColumnId, setSearchColumnId] = useState<number | null>(null);
     const columnIds = useMemo(
         () => columns?.map((col) => col.id.toString()) ?? [],
         [columns]
@@ -143,56 +140,35 @@ export default function DisplayTable({ tableId }: Prop) {
             minSize: 50,
             maxSize: 500,
             cell: ({ row, column }) => {
-            const isNumber = col?.data_type === "number";
-            const value = row.getValue(column.id);
-            const rowIndexFromDB = row.original.row_index;
-            if (rowIndexFromDB === undefined || rowIndexFromDB === null) return null;
-
-            return (
-                <input
-                    type={isNumber ? "number" : "text"}
-                    defaultValue={value as string}
-                    className="w-full h-full p-1 bg-white"
-                    onBlur={(e) => {
-                        const raw = e.target.value.trim(); // Always a string
-                        let newValue: string | number | null = null;
-                    
-                        if (isNumber) {
-                            if (raw === "") {
-                                newValue = null;
-                            } else {
-                                const parsed = parseFloat(raw); // raw is string here
-                                if (!isNaN(parsed)) {
-                                    newValue = parsed;
-                                } else {
-                                    return; // Prevent sending NaN
-                                }
-                            }
-                        } else {
-                            newValue = raw === "" ? null : raw;
+                const isNumber = col?.data_type === "number";
+                const value: string = row.getValue(column.id);
+                const rowIndexFromDB = row.original.row_index;
+            
+                if (rowIndexFromDB === undefined || rowIndexFromDB === null) return null;
+            
+                return (
+                    <BodyCell
+                        value={value}
+                        colId={col.id}
+                        rowIndex={
+                            typeof rowIndexFromDB === "string"
+                                ? parseInt(rowIndexFromDB)
+                                : rowIndexFromDB
                         }
-                    
-                        if (newValue !== value) {
+                        isNumber={isNumber}
+                        onUpdate={({ colId, rowIndex, value }) =>
                             updateCell.mutate({
                                 tableId,
-                                colId: col.id,
-                                rowIndex:
-                                    typeof rowIndexFromDB === "string"
-                                        ? parseInt(rowIndexFromDB)
-                                        : rowIndexFromDB,
-                                value: newValue,
-                            });
+                                colId,
+                                rowIndex,
+                                value,
+                            })
                         }
-                    }}                    
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                            e.preventDefault(); 
-                            (e.target as HTMLInputElement).blur();
-                        }
-                    }}
-                />
-            );
-            },
+                    />
+                );
+            }
+            
+            
         })) ?? []
         );
     }, [columns, updateCell, tableId]);
@@ -256,12 +232,6 @@ export default function DisplayTable({ tableId }: Prop) {
                                                             colId: meta.colId,
                                                             value: newValue,
                                                         });
-                                                    }
-                                                }}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === "Enter") {
-                                                        e.preventDefault();
-                                                        (e.target as HTMLInputElement).blur();
                                                     }
                                                 }}
                                             />
