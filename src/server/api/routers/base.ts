@@ -111,26 +111,17 @@ export const baseRouter = createTRPCRouter({
     
     updateCell: publicProcedure
         .input(z.object({
-            tableId: z.string(),
             colId: z.number(),
             rowIndex: z.number(),
             value: z.union([z.string(), z.number(), z.null()]),
         }))
         .mutation(async ({ input }) => {
-            const { tableId, colId, rowIndex, value } = input;
-
-            const column = await db
-                .select()
-                .from(columns)
-                .where(and(eq(columns.table_id, tableId), eq(columns.id, colId)));
-
-            const col = column[0];
-            if (!col) throw new Error("Column not found");
+            const { colId, rowIndex, value } = input;
 
             const existing = await db
                 .select()
                 .from(cells)
-                .where(and(eq(cells.col_id, col.id), eq(cells.row_index, rowIndex)));
+                .where(and(eq(cells.col_id, colId), eq(cells.row_index, rowIndex)));
 
             if (existing.length > 0) {
                 await db
@@ -139,10 +130,10 @@ export const baseRouter = createTRPCRouter({
                         text: typeof value === "string" ? value : null,
                         num: typeof value === "number" ? value.toString() : null,
                     })
-                    .where(and(eq(cells.col_id, col.id), eq(cells.row_index, rowIndex)));
+                    .where(and(eq(cells.col_id, colId), eq(cells.row_index, rowIndex)));
             } else {
                 await db.insert(cells).values({
-                    col_id: col.id,
+                    col_id: colId,
                     row_index: rowIndex,
                     text: typeof value === "string" ? value : null,
                     num: typeof value === "number" ? value.toString() : null,

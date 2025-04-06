@@ -93,7 +93,7 @@ export default function DisplayTable({ tableId }: Prop) {
             utils.base.getCellsByColumns.setData({ columnIds }, context?.previousData);
         },
         onSettled: () => {
-            void utils.base.getCellsByColumns.invalidate();
+            // void utils.base.getCellsByColumns.invalidate();
         },
     });
 
@@ -158,7 +158,6 @@ export default function DisplayTable({ tableId }: Prop) {
                         isNumber={isNumber}
                         onUpdate={({ colId, rowIndex, value }) =>
                             updateCell.mutate({
-                                tableId,
                                 colId,
                                 rowIndex,
                                 value,
