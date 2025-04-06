@@ -5,7 +5,7 @@ import {
 } from "~/server/api/trpc";
 import { db } from "~/server/db";
 import { bases, tables, columns, cells } from "~/server/db/schema";
-import { desc, eq, inArray, and, or, ilike, sql } from "drizzle-orm";
+import { desc, eq, inArray, and, or, ilike, sql, type SQL } from "drizzle-orm";
 
 export const baseRouter = createTRPCRouter({
     getBases: publicProcedure
@@ -99,7 +99,7 @@ export const baseRouter = createTRPCRouter({
         
             const numAsText = sql`CAST(${cells.num} AS TEXT)`;
 
-            let ordering: any[] = [cells.row_index];
+            let ordering: SQL[] = [sql`${cells.row_index}`];
 
             if (sort) {
               const colId = sort.columnKey
@@ -111,7 +111,7 @@ export const baseRouter = createTRPCRouter({
                   sort.direction === "asc"
                     ? sql.raw(`"text" ASC NULLS LAST, "num" ASC NULLS LAST`)
                     : sql.raw(`"text" DESC NULLS FIRST, "num" DESC NULLS FIRST`),
-                  cells.row_index,
+                    sql`${cells.row_index}`,
                 ];
               }
             }
