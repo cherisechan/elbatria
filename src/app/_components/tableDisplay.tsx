@@ -187,108 +187,112 @@ export default function DisplayTable({ tableId }: Prop) {
     });
 
     return (
-        <div className="overflow-visible h-full">
-             <div className="max-w-[12rem] relative my-2">
-                <span className="absolute inset-y-0 left-2 flex items-center text-gray-400">
-                    <IoIosSearch />
-                </span>
-                <input
-                    type="text"
-                    placeholder="Search"
-                    className="w-full pl-8 pr-2 py-1.5 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    onChange={e => setSearchValue(e.target.value)}
-                />
+        <div className="overflow-hidden flex flex-col h-[80vh]">
+            <div className="sticky top-0 z-20 bg-white border-b border-gray-300 px-4 py-2 flex items-center">
+                <div className="relative w-full max-w-md">
+                    <span className="absolute inset-y-0 left-2 flex items-center text-gray-400">
+                        <IoIosSearch />
+                    </span>
+                    <input
+                        type="text"
+                        placeholder="Search"
+                        className="w-full pl-8 pr-2 py-1.5 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) => setSearchValue(e.target.value)}
+                    />
+                </div>
             </div>
-            <table className="table-fixed border-collapse">
-                <thead className="bg-gray-100 border">
-                {table.getHeaderGroups().map((headerGroup) => (
-                    <tr key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => {
-                            const meta = header.column.columnDef.meta as MyColumnMeta | undefined;
-                            return (
-                                <th
-                                    key={header.id}
-                                    colSpan={header.colSpan}
-                                    style={{
-                                    width: header.getSize(),
-                                    position: "relative",
-                                    }}
-                                    className="border border-gray-300"
-                                >
-                                    {!header.isPlaceholder && (
-                                        <div className="relative w-full h-full flex items-center gap-2 px-1">
-                                            {meta?.datatype === "number" && <MdNumbers className="text-gray-500 h-full" size={20} />}
-                                            {meta?.datatype === "text" && <TiSortAlphabetically className="text-gray-500 h-full" size={20}/>}
-                                            <input
-                                                defaultValue={columns?.find((col) => col.id.toString() === header.column.id)?.name ?? ""}
-                                                className="bg-gray-100 w-full px-1 py-0.5 font-semibold"
-                                                onBlur={(e) => {
-                                                    const newValue = e.target.value.trim();
-                                                    const oldValue = columns?.find((col) => col.id === meta?.colId)?.name;
-                                                    
-                                                    if (meta?.colId && newValue && newValue !== oldValue) {
-                                                        updateCol.mutate({
-                                                            tableId,
-                                                            colId: meta.colId,
-                                                            value: newValue,
-                                                        });
-                                                    }
-                                                }}
-                                            />
-                                            {header.column.getCanResize() && (
-                                            <div
-                                                onMouseDown={header.getResizeHandler()}
-                                                onTouchStart={header.getResizeHandler()}
-                                                className={`absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none
-                                                ${
-                                                    header.column.getIsResizing()
-                                                    ? "bg-blue-500 opacity-100"
-                                                    : "bg-gray-500 opacity-0 hover:opacity-100"
-                                                }`}
-                                            />
-                                            )}
-                                        </div> 
-                                    )}
-                                </th>
-                            );
-                            
-                        })}
-                        <th className="border border-gray-300 px-2 hover:bg-gray-300">
-                            <AddColumnButton tableId={tableId}></AddColumnButton>
-                        </th>
-                    </tr>
-                ))}
-                </thead>
-                <tbody>
-                {table.getRowModel().rows.map((row) => (
-                    <tr key={row.id}>
-                    {row.getVisibleCells().map((cell, cellIndex) => (
-                        <td
-                        key={cell.id}
-                        style={{ width: cell.column.getSize() }}
-                        className="border border-gray-300"
-                        >
-                        <div className="flex items-center gap-2">
-                            {cellIndex === 0 && (
-                            <span className="text-gray-400 w-10 text-center">
-                                {row.index + 1}
-                            </span>
-                            )}
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </div>
-                        </td>
+            <div className="overflow-auto flex-1">
+                <table className="table-fixed border-collapse w-fit">
+                    <thead className="sticky top-0 z-10 bg-gray-100 border">
+                    {table.getHeaderGroups().map((headerGroup) => (
+                        <tr key={headerGroup.id}>
+                            {headerGroup.headers.map((header) => {
+                                const meta = header.column.columnDef.meta as MyColumnMeta | undefined;
+                                return (
+                                    <th
+                                        key={header.id}
+                                        colSpan={header.colSpan}
+                                        style={{
+                                        width: header.getSize(),
+                                        position: "relative",
+                                        }}
+                                        className="border border-gray-300"
+                                    >
+                                        {!header.isPlaceholder && (
+                                            <div className="relative w-full h-full flex items-center gap-2 px-1">
+                                                {meta?.datatype === "number" && <MdNumbers className="text-gray-500 h-full" size={20} />}
+                                                {meta?.datatype === "text" && <TiSortAlphabetically className="text-gray-500 h-full" size={20}/>}
+                                                <input
+                                                    defaultValue={columns?.find((col) => col.id.toString() === header.column.id)?.name ?? ""}
+                                                    className="bg-gray-100 w-full px-1 py-0.5 font-semibold"
+                                                    onBlur={(e) => {
+                                                        const newValue = e.target.value.trim();
+                                                        const oldValue = columns?.find((col) => col.id === meta?.colId)?.name;
+                                                        
+                                                        if (meta?.colId && newValue && newValue !== oldValue) {
+                                                            updateCol.mutate({
+                                                                tableId,
+                                                                colId: meta.colId,
+                                                                value: newValue,
+                                                            });
+                                                        }
+                                                    }}
+                                                />
+                                                {header.column.getCanResize() && (
+                                                <div
+                                                    onMouseDown={header.getResizeHandler()}
+                                                    onTouchStart={header.getResizeHandler()}
+                                                    className={`absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none
+                                                    ${
+                                                        header.column.getIsResizing()
+                                                        ? "bg-blue-500 opacity-100"
+                                                        : "bg-gray-500 opacity-0 hover:opacity-100"
+                                                    }`}
+                                                />
+                                                )}
+                                            </div> 
+                                        )}
+                                    </th>
+                                );
+                                
+                            })}
+                            <th className="border border-gray-300 px-2 hover:bg-gray-300">
+                                <AddColumnButton tableId={tableId}></AddColumnButton>
+                            </th>
+                        </tr>
                     ))}
+                    </thead>
+                    <tbody>
+                    {table.getRowModel().rows.map((row) => (
+                        <tr key={row.id}>
+                        {row.getVisibleCells().map((cell, cellIndex) => (
+                            <td
+                            key={cell.id}
+                            style={{ width: cell.column.getSize() }}
+                            className="border border-gray-300"
+                            >
+                            <div className="flex items-center gap-2">
+                                {cellIndex === 0 && (
+                                <span className="text-gray-400 w-10 text-center">
+                                    {row.index + 1}
+                                </span>
+                                )}
+                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </div>
+                            </td>
+                        ))}
+                        </tr>
+                    ))}
+                    <tr>
+                        <td className="text-gray-400 pl-2 text-lg border border-gray-300 w-10">
+                            <AddRowBtn tableId={tableId} refetch={refetchCells} />
+                        </td>
+                        <td colSpan={table.getAllLeafColumns().length - 1} className="border border-gray-300">
+                        </td>
                     </tr>
-                ))}
-                <tr>
-                    <td className="text-gray-400 pl-2 text-lg border border-gray-300 w-10">
-                        <AddRowBtn tableId={tableId} refetch={refetchCells} />
-                    </td>
-                    <td colSpan={table.getAllLeafColumns().length - 1} className="border border-gray-300">
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }

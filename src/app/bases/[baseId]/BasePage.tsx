@@ -88,14 +88,14 @@ export default function BasePage({ baseId, userId }: Props) {
     }
 
     return (
-    <div>
-        <nav className="flex items-center flex-col bg-[#3a66a3]">
-            <div className="font-semibold text-lg text-white flex w-full px-6 py-4 justify-start gap-2"> 
-                <Image src={logo} alt="Elbatria" className="w-5 h-5 self-center" onClick={() => router.push('/dashboard')} />
-                <p>{base.name}</p>
-            </div>
-
-            <div className="flex w-full overflow-x-auto bg-[#345c91] pl-3 ">
+        <div className="flex flex-col h-screen overflow-hidden">
+            <nav className="flex items-center flex-col bg-[#3a66a3]">
+                <div className="font-semibold text-lg text-white flex w-full px-6 py-4 justify-start gap-2"> 
+                    <Image src={logo} alt="Elbatria" className="w-5 h-5 self-center" onClick={() => router.push('/dashboard')} />
+                    <p>{base.name}</p>
+                </div>
+    
+                <div className="flex w-full bg-[#345c91] pl-3 ">
                 {tables && tables.length > 0 ? (
                     <>
                         {tables.map((table, index) => (
