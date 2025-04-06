@@ -53,9 +53,19 @@ export default function BodyCell({
 
 	return (
 		<input
-			type={isNumber ? "number" : "text"}
+			type="text"
 			value={inputValue}
-			onChange={(e) => setInputValue(e.target.value)}
+			onChange={(e) => {
+                let inputted = e.target.value;
+                if (isNumber) {
+                  inputted = inputted.replace(/[^0-9.]/g, '');
+                  const decimalCount = (inputted.match(/./g) || []).length;
+                  if (decimalCount > 1) {
+                    inputted = inputted.slice(0, -1);
+                  }
+                }
+                setInputValue(inputted);
+            }}
 			onBlur={handleBlur}
 			onKeyDown={(e) => {
 				if (e.key === "Enter") {
