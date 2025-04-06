@@ -59,7 +59,7 @@ export default function BodyCell({
                 let inputted = e.target.value;
                 if (isNumber) {
                   inputted = inputted.replace(/[^0-9.]/g, '');
-                  const decimalCount = (inputted.match(/./g) || []).length;
+                  const decimalCount = (inputted.match(/\./g) || []).length;
                   if (decimalCount > 1) {
                     inputted = inputted.slice(0, -1);
                   }
