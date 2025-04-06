@@ -1,15 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 type Props = {
   value: string | number | null;
   colId: number;
   rowIndex: number;
   isNumber: boolean;
-  onUpdate: (args: {
-    colId: number;
-    rowIndex: number;
-    value: string | number | null;
-  }) => void;
+  onUpdate: (args: { colId: number; rowIndex: number; value: string | number | null }) => void;
 };
 
 export default function BodyCell({
@@ -20,9 +16,13 @@ export default function BodyCell({
   onUpdate,
 }: Props) {
   const [inputValue, setInputValue] = useState<string>(String(value ?? ""));
+  const prevValueRef = useRef(value); 
 
   useEffect(() => {
-    setInputValue(String(value ?? ""));
+    if (prevValueRef.current !== value) {
+      setInputValue(String(value ?? ""));
+      prevValueRef.current = value;
+    }
   }, [value]);
 
   const handleBlur = () => {
@@ -44,12 +44,13 @@ export default function BodyCell({
       newValue = raw === "" ? null : raw;
     }
 
-    if (newValue !== value) {
+    if (newValue != prevValueRef.current) {
       onUpdate({
         colId,
         rowIndex,
         value: newValue,
       });
+      prevValueRef.current = newValue;
     }
   };
 
@@ -60,13 +61,15 @@ export default function BodyCell({
       onChange={(e) => {
         let inputted = e.target.value;
         if (isNumber) {
-          inputted = inputted.replace(/[^0-9.]/g, '');
+          inputted = inputted.replace(/[^0-9.]/g, "");
           const decimalCount = (inputted.match(/\./g) ?? []).length;
           if (decimalCount > 1) {
             inputted = inputted.slice(0, -1);
           }
         }
-        setInputValue(inputted);
+        if (inputted !== inputValue) {
+          setInputValue(inputted);
+        }
       }}
       onBlur={handleBlur}
       onKeyDown={(e) => {
