@@ -22,6 +22,7 @@ interface Prop {
 import { FaSort } from "react-icons/fa";
 import { FaSortUp } from "react-icons/fa";
 import { FaSortDown } from "react-icons/fa";
+import FilterBtn from "./filterBtn";
 type TableRow = Record<string, string | number | null>;
 
 type MyColumnMeta = {
@@ -200,7 +201,7 @@ export default function DisplayTable({ tableId }: Prop) {
     return (
         <div className="overflow-hidden flex flex-col h-[85vh] pr-4">
             <div className="sticky top-0 z-20 bg-white py-2 flex items-center">
-                <div className="relative w-full max-w-md">
+                <div className="relative max-w-md">
                     <span className="absolute inset-y-0 left-2 flex items-center text-gray-400">
                         <IoIosSearch />
                     </span>
@@ -211,6 +212,16 @@ export default function DisplayTable({ tableId }: Prop) {
                         onChange={(e) => setSearchValue(e.target.value)}
                     />
                 </div>
+                <FilterBtn
+                    tableId={tableId}
+                    onFilter={(filter) => {
+                        console.log("Apply filter!", filter);
+                        // You can now:
+                        // - update tRPC query
+                        // - update local state
+                        // - apply filters to TanStack Table
+                    }}
+                />
             </div>
             <div className="overflow-auto flex-1">
                 <table className="table-fixed border-collapse w-fit">
