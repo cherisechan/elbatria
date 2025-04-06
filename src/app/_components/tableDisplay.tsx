@@ -215,11 +215,7 @@ export default function DisplayTable({ tableId }: Prop) {
                 <FilterBtn
                     tableId={tableId}
                     onFilter={(filter) => {
-                        console.log("Apply filter!", filter);
-                        // You can now:
-                        // - update tRPC query
-                        // - update local state
-                        // - apply filters to TanStack Table
+                        console.log(filter);
                     }}
                 />
             </div>
@@ -312,7 +308,7 @@ export default function DisplayTable({ tableId }: Prop) {
                     ))}
                 </thead>
                     <tbody>
-                    {table.getRowModel().rows.map((row) => (
+                    {table.getRowModel().rows.map((row, rowIndex) => (
                         <tr key={row.id}>
                         {row.getVisibleCells().map((cell, cellIndex) => (
                             <td
@@ -323,7 +319,7 @@ export default function DisplayTable({ tableId }: Prop) {
                             <div className="flex items-center gap-2">
                                 {cellIndex === 0 && (
                                 <span className="text-gray-400 w-10 text-center">
-                                    {row.index + 1}
+                                    {rowIndex + 1}
                                 </span>
                                 )}
                                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
