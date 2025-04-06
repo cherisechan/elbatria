@@ -80,33 +80,45 @@ export default function DisplayTable({ tableId }: Prop) {
     }, [columns, cells]);
 
     const utils = api.useUtils();
-
+    const queryInput = {
+        columnIds,
+        sort: sorting[0]
+            ? {
+                columnKey: sorting[0].id,
+                direction: sorting[0].desc ? "desc" as const : "asc" as const,
+            }
+            : undefined,
+        filter: searchValue ? { search: searchValue } : undefined,
+    };
     const updateCell = api.base.updateCell.useMutation({
         onMutate: async (newCell) => {
-        const previousData = utils.base.getCellsByColumns.getData();
-
-        utils.base.getCellsByColumns.setData({ columnIds }, (old) => {
+          const previousData = utils.base.getCellsByColumns.getData(queryInput);
+      
+          utils.base.getCellsByColumns.setData(queryInput, (old) => {
             if (!old) return old;
             return old.map((cell) =>
-            cell.col_id === newCell.colId && cell.row_index === newCell.rowIndex
+              cell.col_id === newCell.colId && cell.row_index === newCell.rowIndex
                 ? {
                     ...cell,
                     text: typeof newCell.value === "string" ? newCell.value : null,
                     num: typeof newCell.value === "number" ? String(newCell.value) : null,
-                }
+                  }
                 : cell
             );
-        });
-
-        return { previousData };
+          });
+      
+          return { previousData };
         },
+      
         onError: (_err, _newCell, context) => {
-            utils.base.getCellsByColumns.setData({ columnIds }, context?.previousData);
+          utils.base.getCellsByColumns.setData(queryInput, context?.previousData);
         },
+      
         onSettled: () => {
-            // void utils.base.getCellsByColumns.invalidate();
+          void utils.base.getCellsByColumns.invalidate(queryInput);
         },
-    });
+      });
+      
 
     const updateCol = api.base.updateCol.useMutation({
         onMutate: async (newCol) => {
