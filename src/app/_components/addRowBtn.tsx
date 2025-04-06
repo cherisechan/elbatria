@@ -16,7 +16,7 @@ export default function AddRowBtn({ tableId, refetch }: Props) {
             setLoading(true);
         },
         onSuccess: () => {
-            refetch(); // refresh the table rows
+            refetch();
         },
         onSettled: () => {
             setLoading(false);
@@ -34,7 +34,7 @@ export default function AddRowBtn({ tableId, refetch }: Props) {
             onClick={handleAddRow}
             disabled={loading}
         >
-            {loading ? "..." : "+"}
+            {loading ? <span className="loading loading-dots loading-xs"></span> : "+"}
         </button>
     );
 }

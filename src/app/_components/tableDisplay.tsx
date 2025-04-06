@@ -5,6 +5,7 @@ import {
   getCoreRowModel,
   getSortedRowModel,
   flexRender,
+  type SortingState,
   type ColumnDef,
 } from "@tanstack/react-table";
 import { useMemo, useState, useEffect } from "react";
@@ -18,7 +19,9 @@ import BodyCell from "./bodyCell";
 interface Prop {
   tableId: string;
 }
-
+import { FaSort } from "react-icons/fa";
+import { FaSortUp } from "react-icons/fa";
+import { FaSortDown } from "react-icons/fa";
 type TableRow = Record<string, string | number | null>;
 
 type MyColumnMeta = {
@@ -30,6 +33,7 @@ export default function DisplayTable({ tableId }: Prop) {
     const { data: columns } = api.base.getColumnsByTableId.useQuery({ tableId });
     const [columnSizing, setColumnSizing] = useState({});
     const [searchValue, setSearchValue] = useState("");
+    const [sorting, setSorting] = useState<SortingState>([]);
     const columnIds = useMemo(
         () => columns?.map((col) => col.id.toString()) ?? [],
         [columns]
@@ -38,6 +42,12 @@ export default function DisplayTable({ tableId }: Prop) {
     const { data: cells, refetch: refetchCells } = api.base.getCellsByColumns.useQuery(
         {
             columnIds,
+            sort: sorting[0]
+            ? {
+                columnKey: sorting[0].id,
+                direction: sorting[0].desc ? "desc" : "asc",
+                }
+            : undefined,
             filter: searchValue
               ? {
                   search: searchValue,
@@ -181,12 +191,14 @@ export default function DisplayTable({ tableId }: Prop) {
         columnResizeMode: "onChange",
         state: {
             columnSizing,
+            sorting
         },
+        onSortingChange: setSorting,
         onColumnSizingChange: setColumnSizing,
     });
 
     return (
-        <div className="overflow-hidden flex flex-col h-[80vh] pr-4">
+        <div className="overflow-hidden flex flex-col h-[85vh] pr-4">
             <div className="sticky top-0 z-20 bg-white py-2 flex items-center">
                 <div className="relative w-full max-w-md">
                     <span className="absolute inset-y-0 left-2 flex items-center text-gray-400">
@@ -195,72 +207,99 @@ export default function DisplayTable({ tableId }: Prop) {
                     <input
                         type="text"
                         placeholder="Search"
-                        className="w-full pl-8 pr-2 py-1.5 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-8 pr-2 py-1.5 rounded border border-gray-300"
                         onChange={(e) => setSearchValue(e.target.value)}
                     />
                 </div>
             </div>
             <div className="overflow-auto flex-1">
                 <table className="table-fixed border-collapse w-fit">
-                    <thead className="sticky top-0 z-10 bg-gray-100 border">
+                <thead className="sticky top-0 z-10 bg-gray-100 border">
                     {table.getHeaderGroups().map((headerGroup) => (
-                        <tr key={headerGroup.id} className="">
+                        <tr key={headerGroup.id}>
                             {headerGroup.headers.map((header) => {
                                 const meta = header.column.columnDef.meta as MyColumnMeta | undefined;
+                                const column = header.column;
+
+                                const isSorted = column.getIsSorted();
+
                                 return (
                                     <th
                                         key={header.id}
                                         colSpan={header.colSpan}
                                         style={{
-                                        width: header.getSize(),
-                                        position: "relative",
+                                            width: column.getSize(),
+                                            position: "relative",
                                         }}
                                         className="border border-gray-300"
                                     >
                                         {!header.isPlaceholder && (
                                             <div className="relative w-full h-full flex items-center gap-2 px-1">
                                                 {meta?.datatype === "number" && <MdNumbers className="text-gray-500 h-full" size={20} />}
-                                                {meta?.datatype === "text" && <TiSortAlphabetically className="text-gray-500 h-full" size={20}/>}
-                                                <input
-                                                    defaultValue={columns?.find((col) => col.id.toString() === header.column.id)?.name ?? ""}
-                                                    className="bg-gray-100 w-full px-1 py-0.5 font-semibold"
-                                                    onBlur={(e) => {
-                                                        const newValue = e.target.value.trim();
-                                                        const oldValue = columns?.find((col) => col.id === meta?.colId)?.name;
-                                                        
-                                                        if (meta?.colId && newValue && newValue !== oldValue) {
-                                                            updateCol.mutate({
-                                                                tableId,
-                                                                colId: meta.colId,
-                                                                value: newValue,
-                                                            });
-                                                        }
-                                                    }}
-                                                />
-                                                {header.column.getCanResize() && (
+                                                {meta?.datatype === "text" && <TiSortAlphabetically className="text-gray-500 h-full" size={20} />}
+
                                                 <div
-                                                    onMouseDown={header.getResizeHandler()}
-                                                    onTouchStart={header.getResizeHandler()}
-                                                    className={`absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none
-                                                    ${
-                                                        header.column.getIsResizing()
-                                                        ? "bg-blue-500 opacity-100"
-                                                        : "bg-gray-500 opacity-0 hover:opacity-100"
-                                                    }`}
-                                                />
+                                                    className="flex items-center gap-1 cursor-pointer w-full"
+                                                    onClick={header.column.getToggleSortingHandler()}
+                                                >
+                                                    <input
+                                                        defaultValue={
+                                                            columns?.find((col) => col.id.toString() === header.column.id)?.name ?? ""
+                                                        }
+                                                        className="bg-gray-100 w-full px-1 py-0.5 font-semibold"
+                                                        onClick={(e) => e.stopPropagation()} // prevent sort on input click
+                                                        onBlur={(e) => {
+                                                            const newValue = e.target.value.trim();
+                                                            const oldValue = columns?.find((col) => col.id === meta?.colId)?.name;
+
+                                                            if (meta?.colId && newValue && newValue !== oldValue) {
+                                                                updateCol.mutate({
+                                                                    tableId,
+                                                                    colId: meta.colId,
+                                                                    value: newValue,
+                                                                });
+                                                            }
+                                                        }}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === "Enter") {
+                                                                e.preventDefault();
+                                                                (e.target as HTMLInputElement).blur();
+                                                            }
+                                                        }}
+                                                    />
+                                                    {
+                                                        isSorted === "asc" &&  <span className="text-gray-400"><FaSortUp/></span>
+                                                    }
+                                                    {
+                                                        isSorted === "desc" &&  <span className="text-gray-400"><FaSortDown/></span>
+                                                    }
+                                                    {
+                                                        isSorted !== "desc" && isSorted !== "asc" &&  <span className="text-gray-400"><FaSort/></span>
+                                                    }
+                                                </div>
+
+                                                {header.column.getCanResize() && (
+                                                    <div
+                                                        onMouseDown={header.getResizeHandler()}
+                                                        onTouchStart={header.getResizeHandler()}
+                                                        className={`absolute right-0 top-0 h-full w-1 bg-gray-100 cursor-col-resize select-none touch-none
+                                                            ${header.column.getIsResizing()
+                                                                ? "bg-blue-500 opacity-100"
+                                                                : "bg-gray-100 hover:bg-gray-300"
+                                                            }`}
+                                                    />
                                                 )}
-                                            </div> 
+                                            </div>
                                         )}
                                     </th>
                                 );
-                                
                             })}
                             <th className="border bg-gray-100 border-gray-300 h-[2rem]">
-                                <AddColumnButton tableId={tableId}></AddColumnButton>
+                                <AddColumnButton tableId={tableId} />
                             </th>
                         </tr>
                     ))}
-                    </thead>
+                </thead>
                     <tbody>
                     {table.getRowModel().rows.map((row) => (
                         <tr key={row.id}>

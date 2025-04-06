@@ -78,12 +78,16 @@ export const baseRouter = createTRPCRouter({
     getCellsByColumns: publicProcedure
         .input(z.object({
             columnIds: z.array(z.string()),
+            sort: z.object({
+                columnKey: z.string(),
+                direction: z.enum(["asc", "desc"]),
+            }).optional(),
             filter: z.object({
                 search: z.string().optional(),
             }).optional(),
         }))
         .query(async ({ input }) => {
-            const { columnIds, filter } = input;
+            const { columnIds, filter, sort } = input;
         
             if (!columnIds.length) return [];
         
@@ -95,6 +99,23 @@ export const baseRouter = createTRPCRouter({
         
             const numAsText = sql`CAST(${cells.num} AS TEXT)`;
 
+            let ordering: any[] = [cells.row_index];
+
+            if (sort) {
+              const colId = sort.columnKey
+              if (colId) {
+                ordering = [
+                  sql.raw(
+                    `CASE WHEN "col_id" = ${colId} THEN 0 ELSE 1 END`,
+                  ),
+                  sort.direction === "asc"
+                    ? sql.raw(`"text" ASC NULLS LAST, "num" ASC NULLS LAST`)
+                    : sql.raw(`"text" DESC NULLS FIRST, "num" DESC NULLS FIRST`),
+                  cells.row_index,
+                ];
+              }
+            }
+        
             return await db.select().from(cells).where(
               and(
                 inArray(cells.col_id, numericIds),
@@ -105,7 +126,7 @@ export const baseRouter = createTRPCRouter({
                     )
                   : undefined
               )
-            ).orderBy(cells.row_index);
+            ).orderBy(...ordering);
     }),
         
     
