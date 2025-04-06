@@ -21,7 +21,6 @@ export default function BodyCell({
 }: Props) {
   const [inputValue, setInputValue] = useState<string>(String(value ?? ""));
 
-  // Sync input if data updates externally
   useEffect(() => {
     setInputValue(String(value ?? ""));
   }, [value]);
@@ -32,21 +31,19 @@ export default function BodyCell({
 
     if (isNumber) {
       if (raw === "") {
-        newValue = null; // Keep it null if it was initially null
+        newValue = null;
       } else {
         const parsed = parseFloat(raw);
         if (!isNaN(parsed)) {
           newValue = parsed;
         } else {
-          return; // Don't update on invalid number
+          return;
         }
       }
     } else {
-      // If it's an empty string, update with null or the typed value
       newValue = raw === "" ? null : raw;
     }
 
-    // Only update if the value has changed
     if (newValue !== value) {
       onUpdate({
         colId,
@@ -64,7 +61,7 @@ export default function BodyCell({
         let inputted = e.target.value;
         if (isNumber) {
           inputted = inputted.replace(/[^0-9.]/g, '');
-          const decimalCount = (inputted.match(/\./g) || []).length;
+          const decimalCount = (inputted.match(/\./g) ?? []).length;
           if (decimalCount > 1) {
             inputted = inputted.slice(0, -1);
           }
