@@ -187,8 +187,8 @@ export default function DisplayTable({ tableId }: Prop) {
     });
 
     return (
-        <div className="overflow-hidden flex flex-col h-[80vh]">
-            <div className="sticky top-0 z-20 bg-white border-b border-gray-300 px-4 py-2 flex items-center">
+        <div className="overflow-hidden flex flex-col h-[80vh] pr-4">
+            <div className="sticky top-0 z-20 bg-white py-2 flex items-center">
                 <div className="relative w-full max-w-md">
                     <span className="absolute inset-y-0 left-2 flex items-center text-gray-400">
                         <IoIosSearch />
@@ -205,7 +205,7 @@ export default function DisplayTable({ tableId }: Prop) {
                 <table className="table-fixed border-collapse w-fit">
                     <thead className="sticky top-0 z-10 bg-gray-100 border">
                     {table.getHeaderGroups().map((headerGroup) => (
-                        <tr key={headerGroup.id}>
+                        <tr key={headerGroup.id} className="">
                             {headerGroup.headers.map((header) => {
                                 const meta = header.column.columnDef.meta as MyColumnMeta | undefined;
                                 return (
@@ -256,7 +256,7 @@ export default function DisplayTable({ tableId }: Prop) {
                                 );
                                 
                             })}
-                            <th className="border border-gray-300 px-2 hover:bg-gray-300">
+                            <th className="border bg-gray-100 border-gray-300 h-[2rem]">
                                 <AddColumnButton tableId={tableId}></AddColumnButton>
                             </th>
                         </tr>

@@ -24,16 +24,16 @@ export default function AddColumnButton({ tableId }: Props) {
     });
 
     return (
-        <div className="relative w-full h-full">
+        <div className=" w-full h-full bg-gray-100 hover:bg-gray-300">
             <button
                 onClick={() => setIsOpen((prev) => !prev)}
-                className="w-full h-full px-2"
+                className="w-full h-full px-2 bg-gray-100 hover:bg-gray-300 text-center"
             >
                 +
             </button>
 
             {isOpen && (
-                <div className="absolute right-[-10px] mr-2 top-7 bg-white border border-gray-300 rounded-md p-3 w-64 z-50">
+                <div className="absolute right-[-10px] top-7 bg-white border border-gray-300 rounded-md p-3 w-64 z-50">
                     <label className="block mb-1 text-sm font-medium">Column Name</label>
                     <input
                         value={name}
