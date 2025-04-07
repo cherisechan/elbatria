@@ -150,21 +150,19 @@ export const cells = pgTable('cells', {
     created_at: timestamp('created_at').defaultNow(),
 });
 
+export const filters = pgTable("filters", {
+    id: serial("id").primaryKey(),
+    col_id: integer("col_id").notNull().references(() => columns.id),
+    type: varchar("type", { length: 20 }).notNull(),
+    value: varchar("value"),
+  });
 
 export const views = pgTable('views', {
     id: serial('id').primaryKey(),
     table_id: uuid('table_id').notNull().references(() => tables.id),
     name: varchar('name').notNull(),
-});
-
-export const filter = pgTable('filter', {
-    id: serial('id').primaryKey(),
-    view_id: serial('view_id').notNull().references(() => views.id),
-    number_greater: boolean('number_greater'),
-    number_target: integer('number_target'),
-    text_filter: integer('text_filter'),
-    sort_asce: boolean('sort_asce')
-});
+    filter_id: integer('filter_id').references(() => filters.id)
+})
 
 
 // relationships  
@@ -193,11 +191,7 @@ export const cellRelations = relations(cells, ({ one }) => ({
 
 export const viewRelations = relations(views, ({ many, one }) => ({
     table: one(tables), 
-    filters: many(filter),
-}));
-
-export const filterRelations = relations(filter, ({ one }) => ({
-    view: one(views),
+    filters: many(filters),
 }));
 
 export const schema = {
@@ -206,6 +200,6 @@ export const schema = {
     columns,
     cells,
     views,
-    filter,
+    filters,
     users,
 };

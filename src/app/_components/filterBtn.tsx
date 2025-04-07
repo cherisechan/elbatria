@@ -12,9 +12,19 @@ interface Props {
 
 type FilterPayload = {
     columnId: number;
-    type: "text" | "number";
-    condition: string;
-    value?: string | number;
+    type: "contains" | "not_contains" | "equal_text" | "empty" | "not_empty" | "greater_than" | "less_than" | "equal_number";
+    value?: string;
+};
+
+const conditionMap: Record<string, FilterPayload["type"]> = {
+    "is empty": "empty",
+    "is not empty": "not_empty",
+    "contains": "contains",
+    "not contains": "not_contains",
+    "equals": "equal_text",
+    "greater than": "greater_than",
+    "less than": "less_than",
+    "equals to": "equal_number",
 };
 
 export default function FilterBtn({ tableId, onFilter }: Props) {
@@ -26,18 +36,16 @@ export default function FilterBtn({ tableId, onFilter }: Props) {
 
     const { data: columns } = api.base.getColumnsByTableId.useQuery({ tableId });
 
-    const selectedCol = columns?.find((col) => col.id === columnId);
-
     const textConditions = ["is empty", "is not empty", "contains", "not contains", "equals"];
-    const numberConditions = ["greater than", "less than", "equals"];
+    const numberConditions = ["greater than", "less than", "equals to"];
 
     const handleApply = () => {
         if (!columnId || !dataType || !condition) return;
-
+        const mapped = conditionMap[condition];
+        if (!mapped) return;
         onFilter({
             columnId,
-            type: dataType,
-            condition,
+            type: mapped,
             value: value || undefined,
         });
 

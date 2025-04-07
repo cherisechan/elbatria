@@ -8,7 +8,7 @@ import {
   type SortingState,
   type ColumnDef,
 } from "@tanstack/react-table";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { api } from "~/trpc/react";
 import { TiSortAlphabetically } from "react-icons/ti";
 import { MdNumbers } from "react-icons/md";
@@ -30,11 +30,18 @@ type MyColumnMeta = {
   colId: number;
 };
 
+type FilterPayload = {
+    columnId: number;
+    type: "contains" | "not_contains" | "equal_text" | "empty" | "not_empty" | "greater_than" | "less_than" | "equal_number";
+    value?: string;
+};
+
 export default function DisplayTable({ tableId }: Prop) {
     const { data: columns } = api.base.getColumnsByTableId.useQuery({ tableId });
     const [columnSizing, setColumnSizing] = useState({});
     const [searchValue, setSearchValue] = useState("");
     const [sorting, setSorting] = useState<SortingState>([]);
+    const [filters, setFilters] = useState<FilterPayload[]>([]);
     const columnIds = useMemo(
         () => columns?.map((col) => col.id.toString()) ?? [],
         [columns]
@@ -49,11 +56,10 @@ export default function DisplayTable({ tableId }: Prop) {
                 direction: sorting[0].desc ? "desc" : "asc",
                 }
             : undefined,
-            filter: searchValue
-              ? {
-                  search: searchValue,
-                }
+            search: searchValue
+              ? searchValue
               : undefined,
+            filters,
           },
         { enabled: columnIds.length > 0 }
     );
@@ -206,7 +212,7 @@ export default function DisplayTable({ tableId }: Prop) {
         columnResizeMode: "onChange",
         state: {
             columnSizing,
-            sorting
+            sorting,
         },
         onSortingChange: setSorting,
         onColumnSizingChange: setColumnSizing,
@@ -228,8 +234,8 @@ export default function DisplayTable({ tableId }: Prop) {
                 </div>
                 <FilterBtn
                     tableId={tableId}
-                    onFilter={(filter) => {
-                        console.log(filter);
+                    onFilter={(newFilter: FilterPayload) => {
+                        setFilters((prev) => [...prev, newFilter]);
                     }}
                 />
             </div>
