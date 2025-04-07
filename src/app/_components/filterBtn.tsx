@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { api } from "~/trpc/react";
-import { FaFilter } from "react-icons/fa";
+import { IoFilterOutline } from "react-icons/io5";
+
 
 interface Props {
     tableId: string;
@@ -46,12 +47,12 @@ export default function FilterBtn({ tableId, onFilter }: Props) {
     };
 
     return (
-        <div className=" ml-4 h-full rounded-md bg-gray-100 hover:bg-gray-300 relative">
+        <div className=" ml-4 h-full rounded-md white hover:bg-gray-100 relative">
             <button
-                className="w-full rounded-md h-full px-2 bg-gray-100 hover:bg-gray-300 text-center"
+                className="w-full rounded-md h-full px-2 bg-white hover:bg-gray-100 text-center flex items-center justify-center gap-1.5"
                 onClick={() => setIsOpen((prev) => !prev)}
             >
-                <FaFilter />
+                <IoFilterOutline /> Filter
             </button>
 
             {isOpen && (
