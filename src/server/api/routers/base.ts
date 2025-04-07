@@ -85,112 +85,129 @@ export const baseRouter = createTRPCRouter({
         }),
 
     getCellsByColumns: publicProcedure
-        .input(z.object({
-          columnIds: z.array(z.string()),
-          sort: z.object({
+    .input(z.object({
+        columnIds: z.array(z.string()),
+        sort: z.object({
             columnKey: z.string(),
             direction: z.enum(["asc", "desc"]),
-          }).optional(),
-          search: z.string().optional(),
-          filters: z.array(filterSchema).optional(),
-        }))
-        .query(async ({ input }) => {
-            const { columnIds, sort, search, filters } = input;
-        
-            if (!columnIds.length) return [];
-        
-            const numericIds = columnIds.map((id) => parseInt(id)).filter((id) => !isNaN(id));
-            const numAsText = sql`CAST(${cells.num} AS TEXT)`;
-
-            const whereConditions:SQL[]= [inArray(cells.col_id, numericIds)];  
-            if (search) {
-                const adding = or(
-                    ilike(cells.text, `%${search}%`),
-                    ilike(numAsText, `%${search}%`)
-                )
-                if (adding) {
-                    whereConditions.push(adding)
-                }
+        }).optional(),
+        search: z.string().optional(),
+        filters: z.array(filterSchema).optional(),
+    }))
+    .query(async ({ input }) => {
+        const { columnIds, sort, search, filters } = input;
+    
+        if (!columnIds.length) return [];
+    
+        const numericIds = columnIds.map((id) => parseInt(id)).filter((id) => !isNaN(id));
+        const numAsText = sql`CAST(${cells.num} AS TEXT)`;
+    
+        const filterConditions:SQL[]= [inArray(cells.col_id, numericIds)];  
+        if (search) {
+            const adding = or(
+                ilike(cells.text, `%${search}%`),
+                ilike(numAsText, `%${search}%`)
+            )
+            if (adding) {
+                filterConditions.push(adding)
             }
-
-            if (filters && filters.length > 0) {
-                for (const filter of filters) {
+        }
+    
+        if (filters && filters.length > 0) {
+            for (const filter of filters) {
                 const { columnId, type, value } = filter;
-        
-                switch (type) {
-                    case "contains":
-                        const adding1 = and(eq(cells.col_id, columnId), ilike(cells.text, `%${value}%`))
-                        if (value && adding1) {
-                            whereConditions.push(adding1);
-                        }
-                        break;
-                    case "not_contains":
-                        const adding2 = and(eq(cells.col_id, columnId), sql`${cells.text} NOT ILIKE ${`%${value}%`}`);
-                        if (value && adding2) {
-                            whereConditions.push(adding2);
-                        }
-                        break;
-                    case "equal_text":
-                        const adding3 = and(eq(cells.col_id, columnId), sql`${cells.text} ILIKE ${`%${value}%`}`);
-                        if (value && adding3) {
-                            whereConditions.push(adding3);
-                        }
-                        break;
-                    case "empty":
-                        const adding4 = and(eq(cells.col_id, columnId), isNull(cells.text));
-                        if (value && adding4) {
-                            whereConditions.push(adding4);
-                        }
-                        break;
-                    case "not_empty":
-                        const adding5 = and(eq(cells.col_id, columnId), isNotNull(cells.text));
-                        if (value && adding5) {
-                            whereConditions.push(adding5);
-                        }
-                        break;
-                    case "greater_than":
-                        const adding6 = and(eq(cells.col_id, columnId), sql`${cells.num} > ${value}`)
-                        if (value && adding6) {
-                            whereConditions.push(adding6);
-                        }
-                        break;
-                    case "less_than":
-                        const adding7 = and(eq(cells.col_id, columnId), sql`${cells.num} < ${value}`)
-                        if (value && adding7) {
-                            whereConditions.push(adding7);
-                        }
-                        break;
-                    case "equal_number":
-                        const adding8 = and(eq(cells.col_id, columnId), sql`${cells.num} = ${value}`)
-                        if (value && adding8) {
-                            whereConditions.push(adding8);
-                        }
-                        break;
+            switch (type) {
+                case "contains":
+                    const adding1 = and(eq(cells.col_id, columnId), ilike(cells.text, `%${value}%`))
+                    if (value && adding1) {
+                        filterConditions.push(adding1);
                     }
+                    break;
+                case "not_contains":
+                    const adding2 = and(eq(cells.col_id, columnId), sql`${cells.text} NOT ILIKE ${`%${value}%`}`);
+                    if (value && adding2) {
+                        filterConditions.push(adding2);
+                    }
+                    break;
+                case "equal_text":
+                    const adding3 = and(eq(cells.col_id, columnId), sql`${cells.text} ILIKE ${`%${value}%`}`);
+                    if (value && adding3) {
+                        filterConditions.push(adding3);
+                    }
+                    break;
+                case "empty":
+                    const adding4 = and(eq(cells.col_id, columnId), isNull(cells.text));
+                    if (value && adding4) {
+                        filterConditions.push(adding4);
+                    }
+                    break;
+                case "not_empty":
+                    const adding5 = and(eq(cells.col_id, columnId), isNotNull(cells.text));
+                    if (value && adding5) {
+                        filterConditions.push(adding5);
+                    }
+                    break;
+                case "greater_than":
+                    const adding6 = and(eq(cells.col_id, columnId), sql`${cells.num} > ${value}`)
+                    if (value && adding6) {
+                        filterConditions.push(adding6);
+                    }
+                    break;
+                case "less_than":
+                    const adding7 = and(eq(cells.col_id, columnId), sql`${cells.num} < ${value}`)
+                    if (value && adding7) {
+                        filterConditions.push(adding7);
+                    }
+                    break;
+                case "equal_number":
+                    const adding8 = and(eq(cells.col_id, columnId), sql`${cells.num} = ${value}`)
+                    if (value && adding8) {
+                        filterConditions.push(adding8);
+                    }
+                    break;
                 }
             }
-
-            let ordering: SQL[] = [sql`${cells.row_index}`];
-            if (sort) {
-                const colId = parseInt(sort.columnKey);
-                if (!isNaN(colId)) {
-                ordering = [
-                    sql.raw(`CASE WHEN "col_id" = ${colId} THEN 0 ELSE 1 END`),
-                    sort.direction === "asc"
-                    ? sql.raw(`"text" ASC NULLS LAST, "num" ASC NULLS LAST`)
-                    : sql.raw(`"text" DESC NULLS FIRST, "num" DESC NULLS FIRST`),
-                    sql`${cells.row_index}`,
-                ];
-                }
+        }
+    
+        // Step 1: Find row_indices that match filters
+        const matchingRowsQuery = db
+            .selectDistinct({ row_index: cells.row_index })
+            .from(cells)
+            .where(and(...filterConditions));
+    
+        const matchingRowIndices = await matchingRowsQuery;
+    
+        const rowIndexSet = matchingRowIndices.map((r) => r.row_index);
+    
+        if (rowIndexSet.length === 0) return [];
+    
+        // Step 2: Get ALL cells from matching rows and the desired columns
+        const whereClause = and(
+            inArray(cells.col_id, numericIds),
+            inArray(cells.row_index, rowIndexSet)
+        );
+    
+        let ordering: SQL[] = [sql`${cells.row_index}`];
+        if (sort) {
+            const colId = parseInt(sort.columnKey);
+            if (!isNaN(colId)) {
+            ordering = [
+                sql.raw(`CASE WHEN "col_id" = ${colId} THEN 0 ELSE 1 END`),
+                sort.direction === "asc"
+                ? sql.raw(`"text" ASC NULLS LAST, "num" ASC NULLS LAST`)
+                : sql.raw(`"text" DESC NULLS FIRST, "num" DESC NULLS FIRST`),
+                sql`${cells.row_index}`,
+            ];
             }
-        
-            return await db
-                .select()
-                .from(cells)
-                .where(and(...whereConditions.filter((c): c is SQL => c !== undefined)))
-                .orderBy(...ordering);
-            }),
-        
+        }
+    
+        return await db
+            .select()
+            .from(cells)
+            .where(whereClause)
+            .orderBy(...ordering);
+        }),
+          
     
     updateCell: publicProcedure
         .input(z.object({

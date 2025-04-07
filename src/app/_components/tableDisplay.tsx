@@ -8,7 +8,7 @@ import {
   type SortingState,
   type ColumnDef,
 } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "~/trpc/react";
 import { TiSortAlphabetically } from "react-icons/ti";
 import { MdNumbers } from "react-icons/md";
@@ -46,6 +46,10 @@ export default function DisplayTable({ tableId }: Prop) {
         () => columns?.map((col) => col.id.toString()) ?? [],
         [columns]
     );
+
+    useEffect(() => {
+        setFilters([])
+    }, [tableId])
 
     const { data: cells, refetch: refetchCells } = api.base.getCellsByColumns.useQuery(
         {
@@ -236,6 +240,10 @@ export default function DisplayTable({ tableId }: Prop) {
                     tableId={tableId}
                     onFilter={(newFilter: FilterPayload) => {
                         setFilters((prev) => [...prev, newFilter]);
+                    }}
+                    filters={filters}
+                    onDelete={(index) => {
+                        setFilters((prev) => prev.filter((_, i) => i !== index));
                     }}
                 />
             </div>

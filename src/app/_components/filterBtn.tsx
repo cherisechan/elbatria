@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "~/trpc/react";
 import { IoFilterOutline } from "react-icons/io5";
 
 
 interface Props {
     tableId: string;
+    filters: FilterPayload[];
     onFilter: (filter: FilterPayload) => void;
+    onDelete: (index: number) => void;
+    
 }
 
 type FilterPayload = {
@@ -27,7 +30,7 @@ const conditionMap: Record<string, FilterPayload["type"]> = {
     "equals to": "equal_number",
 };
 
-export default function FilterBtn({ tableId, onFilter }: Props) {
+export default function FilterBtn({ tableId, onFilter, filters, onDelete }: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const [columnId, setColumnId] = useState<number | null>(null);
     const [dataType, setDataType] = useState<"text" | "number" | null>(null);
@@ -38,6 +41,10 @@ export default function FilterBtn({ tableId, onFilter }: Props) {
 
     const textConditions = ["is empty", "is not empty", "contains", "not contains", "equals"];
     const numberConditions = ["greater than", "less than", "equals to"];
+
+    useEffect(() => {
+        setIsOpen(false)
+    }, [tableId])
 
     const handleApply = () => {
         if (!columnId || !dataType || !condition) return;
@@ -65,6 +72,28 @@ export default function FilterBtn({ tableId, onFilter }: Props) {
 
             {isOpen && (
                 <div className="absolute left-1/2 top-11 transform -translate-x-1/2 bg-white border border-gray-300 rounded-md p-3 w-72 z-50">
+                    {filters.length > 0 && (
+                        <div className="mb-3">
+                            <ul className="space-y-1 text-sm max-h-32 overflow-y-auto">
+                            {filters.map((filter, index) => {
+                                const col = columns?.find(c => c.id === filter.columnId);
+                                return (
+                                <li key={index} className="flex justify-between items-center border border-gray-200 px-2 py-1 rounded">
+                                    <span>
+                                    <strong>{col?.name}</strong> {filter.type.replaceAll("_", " ")}
+                                    {filter.value ? ` "${filter.value}"` : ""}
+                                    </span>
+                                    <button
+                                        onClick={() => onDelete(index)}
+                                        className="text-red-500 hover:text-red-700 text-xs ml-2"
+                                    > ✕ </button>
+                                </li>
+                                );
+                            })}
+                            </ul>
+                        </div>
+                    )}
+
                     <label className="block mb-1 text-sm font-medium">Column</label>
                     <select
                         className="w-full border px-2 py-1 rounded mb-3"
