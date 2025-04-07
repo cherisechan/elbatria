@@ -116,55 +116,55 @@ export const baseRouter = createTRPCRouter({
         if (filters && filters.length > 0) {
             for (const filter of filters) {
                 const { columnId, type, value } = filter;
-            switch (type) {
-                case "contains":
-                    const adding1 = and(eq(cells.col_id, columnId), ilike(cells.text, `%${value}%`))
-                    if (value && adding1) {
-                        filterConditions.push(adding1);
-                    }
-                    break;
-                case "not_contains":
-                    const adding2 = and(eq(cells.col_id, columnId), sql`${cells.text} NOT ILIKE ${`%${value}%`}`);
-                    if (value && adding2) {
-                        filterConditions.push(adding2);
-                    }
-                    break;
-                case "equal_text":
-                    const adding3 = and(eq(cells.col_id, columnId), sql`${cells.text} ILIKE ${`%${value}%`}`);
-                    if (value && adding3) {
-                        filterConditions.push(adding3);
-                    }
-                    break;
-                case "empty":
-                    const adding4 = and(eq(cells.col_id, columnId), isNull(cells.text));
-                    if (value && adding4) {
-                        filterConditions.push(adding4);
-                    }
-                    break;
-                case "not_empty":
-                    const adding5 = and(eq(cells.col_id, columnId), isNotNull(cells.text));
-                    if (value && adding5) {
-                        filterConditions.push(adding5);
-                    }
-                    break;
-                case "greater_than":
-                    const adding6 = and(eq(cells.col_id, columnId), sql`${cells.num} > ${value}`)
-                    if (value && adding6) {
-                        filterConditions.push(adding6);
-                    }
-                    break;
-                case "less_than":
-                    const adding7 = and(eq(cells.col_id, columnId), sql`${cells.num} < ${value}`)
-                    if (value && adding7) {
-                        filterConditions.push(adding7);
-                    }
-                    break;
-                case "equal_number":
-                    const adding8 = and(eq(cells.col_id, columnId), sql`${cells.num} = ${value}`)
-                    if (value && adding8) {
-                        filterConditions.push(adding8);
-                    }
-                    break;
+                switch (type) {
+                    case "contains":
+                        const adding1 = and(eq(cells.col_id, columnId), ilike(cells.text, `%${value}%`))
+                        if (value && adding1) {
+                            filterConditions.push(adding1);
+                        }
+                        break;
+                    case "not_contains":
+                        const adding2 = and(eq(cells.col_id, columnId), sql`${cells.text} NOT ILIKE ${`%${value}%`}`);
+                        if (value && adding2) {
+                            filterConditions.push(adding2);
+                        }
+                        break;
+                    case "equal_text":
+                        const adding3 = and(eq(cells.col_id, columnId), sql`${cells.text} ILIKE ${`%${value}%`}`);
+                        if (value && adding3) {
+                            filterConditions.push(adding3);
+                        }
+                        break;
+                    case "empty":
+                        const adding4 = and(eq(cells.col_id, columnId), isNull(cells.text));
+                        if (adding4) {
+                            filterConditions.push(adding4);
+                        }
+                        break;
+                    case "not_empty":
+                        const adding5 = and(eq(cells.col_id, columnId), isNotNull(cells.text));
+                        if (adding5) {
+                            filterConditions.push(adding5);
+                        }
+                        break;
+                    case "greater_than":
+                        const adding6 = and(eq(cells.col_id, columnId), sql`${cells.num} > ${value}`)
+                        if (value && adding6) {
+                            filterConditions.push(adding6);
+                        }
+                        break;
+                    case "less_than":
+                        const adding7 = and(eq(cells.col_id, columnId), sql`${cells.num} < ${value}`)
+                        if (value && adding7) {
+                            filterConditions.push(adding7);
+                        }
+                        break;
+                    case "equal_number":
+                        const adding8 = and(eq(cells.col_id, columnId), sql`${cells.num} = ${value}`)
+                        if (value && adding8) {
+                            filterConditions.push(adding8);
+                        }
+                        break;
                 }
             }
         }
