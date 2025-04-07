@@ -137,7 +137,7 @@ export default function BasePage({ baseId, userId }: Props) {
         <div className="w-full bg-">
             
         </div>
-        <div className="p-3">
+        <div className="px-3">
             <DisplayTable tableId={onTableId}/>
         </div>
     </div>
