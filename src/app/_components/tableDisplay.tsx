@@ -61,7 +61,7 @@ export default function DisplayTable({ tableId }: Prop) {
     const rows = useMemo(() => {
         if (!columns || !cells) return [];
 
-        const colMap = Object.fromEntries(columns.map((col) => [col.id, col.name]));
+        const colMap = Object.fromEntries(columns.map((col) => [col.id, `col_${col.id}`]));
         const rowMap: Record<number, TableRow> = {};
 
         for (const cell of cells) {
@@ -73,7 +73,9 @@ export default function DisplayTable({ tableId }: Prop) {
             rowMap[rowIndex] = { row_index: rowIndex };
         }
 
-        rowMap[rowIndex][colName] = cell.text ?? cell.num ?? null;
+        const colKey = colMap[cell.col_id];
+        if (!colKey) continue;
+            rowMap[rowIndex][colKey] = cell.text ?? cell.num ?? null;
         }
 
         return Object.values(rowMap);
@@ -153,7 +155,7 @@ export default function DisplayTable({ tableId }: Prop) {
         return (
         columns?.map((col) => ({
             id: col.id.toString(),
-            accessorKey: col.name,
+            accessorKey: `col_${col.id}`,
             header: col.name,
             meta: {
                 datatype: col.data_type,
