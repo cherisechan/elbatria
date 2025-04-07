@@ -5,7 +5,7 @@ import {
 } from "~/server/api/trpc";
 import { db } from "~/server/db";
 import { bases, tables, columns, cells } from "~/server/db/schema";
-import { desc, eq, inArray, and, or, ilike, sql, type SQL, isNull, isNotNull } from "drizzle-orm";
+import { desc, eq, inArray, and, or, ilike, sql, type SQL, isNull, isNotNull, ne } from "drizzle-orm";
 
 const filterSchema = z.object({
     columnId: z.number(),
@@ -113,9 +113,15 @@ export const baseRouter = createTRPCRouter({
             }
         }
     
+        const allColumns = await db.select().from(columns).where(inArray(columns.id, numericIds));
+
         if (filters && filters.length > 0) {
             for (const filter of filters) {
                 const { columnId, type, value } = filter;
+                const column = allColumns.find((col) => col.id === columnId);
+                if (!column) continue;
+
+                const isNumber = column.data_type === "number";
                 switch (type) {
                     case "contains":
                         const adding1 = and(eq(cells.col_id, columnId), ilike(cells.text, `%${value}%`))
@@ -136,13 +142,13 @@ export const baseRouter = createTRPCRouter({
                         }
                         break;
                     case "empty":
-                        const adding4 = and(eq(cells.col_id, columnId), isNull(cells.text));
+                        const adding4 = and(eq(cells.col_id, columnId), isNumber ? or(isNull(cells.num), eq(cells.num, "")) : or(isNull(cells.text), eq(cells.text, "")));
                         if (adding4) {
                             filterConditions.push(adding4);
                         }
                         break;
                     case "not_empty":
-                        const adding5 = and(eq(cells.col_id, columnId), isNotNull(cells.text));
+                        const adding5 = and(eq(cells.col_id, columnId), isNumber ? and(isNotNull(cells.num), ne(cells.num, "")) :  and(isNotNull(cells.text), ne(cells.text, "")))
                         if (adding5) {
                             filterConditions.push(adding5);
                         }
